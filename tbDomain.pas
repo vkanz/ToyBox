@@ -73,9 +73,9 @@ type
     constructor Create;
     destructor Destroy; override;
     function FindTaskById(AID: Integer; out ATask: TtbTask): Boolean;
+    function GetAllTasksID: String;
     {}
     property Tasks: TtbTaskList read FTasks write FTasks;
-    //property Tasks1: TtbTaskDict read FTasks1 write FTasks1;
     property Persons: TtbPersonList read FPersons write FPersons;
   end;
 
@@ -83,14 +83,18 @@ type
   TtbLane = class
   private
     FTitle: String;
-    FTaskIdList: String;
-    FTaskIds: TArray<Integer>;
+    FTaskIDs2: TList<Integer>;
     procedure SetTaskIdList(const Value: String);
+    function GetTaskIdList: String;
   public
+    constructor Create;
+    destructor Destroy; override;
     function GetCount: Integer;
     function GetTaskId(AIndex: Integer): Integer;
+    function AddTaskID(ATaskID: Integer): Integer;
+    procedure RemoveTaskID(ATaskID: Integer);
     property Title: String read FTitle write FTitle;
-    property TaskIdList: String read FTaskIdList write SetTaskIdList;
+    property TaskIdList: String read GetTaskIdList write SetTaskIdList;
   end;
 
 type
@@ -144,6 +148,20 @@ begin
   Result := ATask <> nil;
 end;
 
+function TtbDomain.GetAllTasksID: String;
+var
+  I: Integer;
+begin
+  Result := '';
+  I := 0;
+  for I := 0 to FTasks.Count - 1 do
+  begin
+    if I > 0 then
+      Result := Result + ',';
+    Result := Result + FTasks[I].ID.ToString;
+  end;
+end;
+
 { TtbPerson }
 
 constructor TtbPerson.Create(AId: Integer; const AFullName, ANickName, AInitials: String);
@@ -186,25 +204,54 @@ end;
 
 { TtbLane }
 
+function TtbLane.AddTaskID(ATaskID: Integer): Integer;
+begin
+  Result := FTaskIDs2.Add(ATaskID);
+end;
+
+constructor TtbLane.Create;
+begin
+  FTaskIDs2 := TList<Integer>.Create;
+end;
+
+destructor TtbLane.Destroy;
+begin
+  FTaskIDs2.Free;
+  inherited;
+end;
+
 function TtbLane.GetCount: Integer;
 begin
-  Result := Length(FTaskIds);
+  Result := FTaskIDs2.Count;
 end;
 
 function TtbLane.GetTaskId(AIndex: Integer): Integer;
 begin
-  Result := FTaskIds[AIndex];
+  Result := FTaskIds2[AIndex];
+end;
+
+function TtbLane.GetTaskIdList: String;
+var
+  Enum: Integer;
+begin
+  Result := '';
+  for Enum in FTaskIds2 do
+    Result := Result + Enum.ToString + ',';
+  Result := Copy(Result, 1, Length(Result) - 1);
+end;
+
+procedure TtbLane.RemoveTaskID(ATaskID: Integer);
+begin
+  FTaskIDs2.Remove(ATaskID);
 end;
 
 procedure TtbLane.SetTaskIdList(const Value: String);
 var
   I: Integer;
 begin
-  FTaskIdList := Value;
-  var IDs := FTaskIdList.Split([',']);
-  SetLength(FTaskIds, Length(IDs));
+  var IDs := Value.Split([',']);
   for I := 0 to Length(IDs) - 1 do
-    FTaskIds[I] := StrToIntDef(IDs[I], 0);
+    FTaskIDs2.Add(StrToIntDef(IDs[I], 0));
 end;
 
 { TtbTaskDict }

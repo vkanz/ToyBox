@@ -13,6 +13,12 @@ type
   ItbTaskCard = interface
   end;
 
+type
+  ItbPage = interface
+    procedure Initialize;
+    procedure Finalize;
+  end;
+
 implementation
 
 end.

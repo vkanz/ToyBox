@@ -23,11 +23,13 @@ type
   TLaneControls = class;
 
   TLaneShowControl = procedure (ASender: TLaneControls; const AIndex: Integer; AControl: TControl;
-   var AVisible: Boolean) of object;
+    var AVisible: Boolean) of object;
+  TLaneIndexProcedure = procedure (ASource, ATarget: TLaneControls) of object;
 
   TLaneControls = class
   private
     FOnShowControl: TLaneShowControl;
+    FOnDropItem: TLaneIndexProcedure;
   public
     Lane: TtbLane;
     Panel: TPanel;
@@ -36,7 +38,17 @@ type
     Title: TLabel;
     Text: TLabel;
     procedure HandleControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
+    {Manual BeginDrag}
+    procedure HandleControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    {Creation of DragObject}
+    procedure HandleControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
+    {Accepting Drag Object}
+    procedure HandleControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
+    {Dropping}
+    procedure HandleControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
+    {}
     property OnShowControl: TLaneShowControl read FOnShowControl write FOnShowControl;
+    property OnDropItem: TLaneIndexProcedure read FOnDropItem write FOnDropItem;
   end;
 
 type
@@ -50,6 +62,7 @@ type
     procedure PrepareGrid;
     procedure HandleLaneShowControl(ASender: TLaneControls; const AIndex: Integer; AControl: TControl;
       var AVisible: Boolean);
+    procedure HandleLaneDropItem(ASource, ATarget: TLaneControls);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -63,7 +76,16 @@ type
 implementation
 
 uses Vcl.Graphics, System.UITypes, SysUtils,
+{$IFDEF DEBUG}
+  Dialogs,
+{$ENDIF}
   tbLaneHeaderFrame;
+
+type
+  TTaskDragObject = class(TDragObjectEx)
+    LaneControls: TLaneControls;
+    constructor Create(ALaneControls: TLaneControls);
+  end;
 
 { TtbBoardBuilder }
 
@@ -92,6 +114,18 @@ begin
   PrepareGrid;
 end;
 
+procedure TtbBoardAdapter.HandleLaneDropItem(ASource, ATarget: TLaneControls);
+var
+  TaskID: Integer;
+begin
+  Assert(FDomain <> nil);
+  TaskID := ASource.Lane.GetTaskId(ASource.ControlList.ItemIndex);
+  ASource.Lane.RemoveTaskID(TaskID);
+  ATarget.Lane.AddTaskID(TaskID);
+  ShowMessage(TaskID.ToString)
+  //ASender.Lane.
+end;
+
 procedure TtbBoardAdapter.HandleLaneShowControl(ASender: TLaneControls; const AIndex: Integer; AControl: TControl;
   var AVisible: Boolean);
 var
@@ -105,7 +139,6 @@ begin
       ASender.Title.Caption := Task.Title
     else if AControl = ASender.Text then
       ASender.Text.Caption := Task.Text;
-
 end;
 
 procedure TtbBoardAdapter.PrepareGrid;
@@ -128,6 +161,7 @@ begin
       LaneControls := TLaneControls.Create;
       LaneControls.Lane := Lane;
       LaneControls.OnShowControl := HandleLaneShowControl;
+      LaneControls.OnDropItem := HandleLaneDropItem;
       FLanes.Add(LaneControls);
 
       FGridPanel.ColumnCollection.Add.SizeStyle := ssPercent;
@@ -157,6 +191,10 @@ begin
         ItemSelectionOptions.SelectedColorAlpha := 30;
         ItemSelectionOptions.FocusedColorAlpha := 40;
         OnShowControl := LaneControls.HandleControlListShowControl;
+        OnMouseDown := LaneControls.HandleControlListMouseDown;
+        OnStartDrag := LaneControls.HandleControlListStartDrag;
+        OnDragOver := LaneControls.HandleControlListDragOver;
+        OnDragDrop := LaneControls.HandleControlListDragDrop;
       end;
 
       {Title}
@@ -186,6 +224,33 @@ end;
 
 { TLaneControls }
 
+procedure TLaneControls.HandleControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  if (Button = mbLeft) then
+    if Sender is TControlList then
+      TControlList(Sender).BeginDrag(False);
+end;
+
+procedure TLaneControls.HandleControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
+begin
+  DragObject := TTaskDragObject.Create(Self);
+end;
+
+procedure TLaneControls.HandleControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
+  var Accept: Boolean);
+begin
+  Accept := IsDragObject(Source) and (Source is TTaskDragObject)
+    and (Self <> TTaskDragObject(Source).LaneControls); //TODO Moving within one Lane
+end;
+
+procedure TLaneControls.HandleControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
+begin
+  if IsDragObject(Source) and (Source is TTaskDragObject) then
+    if Assigned(FOnDropItem) then
+      FOnDropItem(TTaskDragObject(Source).LaneControls,  Self);
+end;
+
 procedure TLaneControls.HandleControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
 begin
   if Assigned(FOnShowControl) then
@@ -211,6 +276,14 @@ end;
 procedure TPanelHeader.SetText(AValue: String);
 begin
   Caption := AValue;
+end;
+
+{ TTaskDragObject }
+
+constructor TTaskDragObject.Create(ALaneControls: TLaneControls);
+begin
+  inherited Create;
+  LaneControls := ALaneControls;
 end;
 
 end.
