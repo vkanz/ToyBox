@@ -1,0 +1,5 @@
+*.local
+*.identcache
+ToyBox.res
+__history/
+Win32/

@@ -1,7 +1,7 @@
-object Form2: TForm2
+object FormMain: TFormMain
   Left = 0
   Top = 0
-  Caption = 'Form2'
+  Caption = 'FormMain'
   ClientHeight = 397
   ClientWidth = 618
   Color = clBtnFace
@@ -841,10 +841,10 @@ object Form2: TForm2
     end
   end
   object Panel_PageContainer: TPanel
-    Left = 200
+    Left = 221
     Top = 72
-    Width = 418
-    Height = 325
+    Width = 332
+    Height = 249
     BevelOuter = bvNone
     TabOrder = 1
   end

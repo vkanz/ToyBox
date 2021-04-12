@@ -120,9 +120,21 @@ var
 begin
   Assert(FDomain <> nil);
   TaskID := ASource.Lane.GetTaskId(ASource.ControlList.ItemIndex);
-  ASource.Lane.RemoveTaskID(TaskID);
-  ATarget.Lane.AddTaskID(TaskID);
-  Draw;
+
+  if ASource <> ATarget then
+  begin
+    ASource.Lane.RemoveTaskID(TaskID);
+    ASource.ControlList.ItemCount := ASource.ControlList.ItemCount - 1;
+    ASource.ControlList.Repaint;
+
+    ATarget.Lane.AddTaskID(TaskID);
+    ATarget.ControlList.ItemCount := ATarget.ControlList.ItemCount + 1;
+    ATarget.ControlList.Repaint;
+  end
+  else
+  begin
+
+  end;
 end;
 
 procedure TtbBoardAdapter.HandleLaneShowControl(ASender: TLaneControls; const AIndex: Integer; AControl: TControl;
@@ -246,7 +258,7 @@ end;
 procedure TLaneControls.HandleControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
   if IsDragObject(Source) and (Source is TTaskDragObject) then
-    if Assigned(FOnDropItem) then
+    if Assigned(FOnDropItem) then {TODO calculate target ItemIndex}
       FOnDropItem(TTaskDragObject(Source).LaneControls,  Self);
 end;
 

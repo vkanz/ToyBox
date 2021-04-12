@@ -10,7 +10,7 @@ uses
   tbDomain, tbBoard, tbRepo, tbBoardIntf, Vcl.TitleBarCtrls;
 
 type
-  TForm2 = class(TForm)
+  TFormMain = class(TForm)
     SplitView: TSplitView;
     NavPanel: TPanel;
     ImageCollection1: TImageCollection;
@@ -42,7 +42,7 @@ type
   end;
 
 var
-  Form2: TForm2;
+  FormMain: TFormMain;
 
 implementation
 
@@ -60,7 +60,7 @@ begin
   ShellExecute(0, 'OPEN', PChar(AUrl), '', '', SW_SHOWNORMAL);
 end;
 
-procedure TForm2.DashboardButtonClick(Sender: TObject);
+procedure TFormMain.DashboardButtonClick(Sender: TObject);
 begin
   if Assigned(FCurrentPage) then
     FCurrentPage.Finalize;
@@ -69,14 +69,15 @@ begin
   FCurrentPage.Initialize;
 end;
 
-procedure TForm2.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+procedure TFormMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   SaveDomainAndBoard;
   CanClose := True;
 end;
 
-procedure TForm2.FormCreate(Sender: TObject);
+procedure TFormMain.FormCreate(Sender: TObject);
 begin
+  Caption := Application.Title;
   Panel_PageContainer.Align := alClient;
   SplitView.Opened := False;
 
@@ -86,19 +87,19 @@ begin
   FRepo.GetDomain(FDomain);
 end;
 
-procedure TForm2.FormDestroy(Sender: TObject);
+procedure TFormMain.FormDestroy(Sender: TObject);
 begin
   FRepo.Free;
   FDomain.Free;
 end;
 
-procedure TForm2.HandleHyperlinkClicked(ASender: TObject);
+procedure TFormMain.HandleHyperlinkClicked(ASender: TObject);
 begin
   if ASender is TTaskDialog then
     ShowWebPage(TTaskDialog(ASender).URL);
 end;
 
-procedure TForm2.lblTitleClick(Sender: TObject);
+procedure TFormMain.lblTitleClick(Sender: TObject);
 begin
   with TTaskDialog.Create(Self) do
     try
@@ -120,24 +121,24 @@ begin
     end;
 end;
 
-procedure TForm2.MenuVirtualImageClick(Sender: TObject);
+procedure TFormMain.MenuVirtualImageClick(Sender: TObject);
 begin
   SplitView.Opened := not SplitView.Opened;
 end;
 
-procedure TForm2.SaveDomainAndBoard;
+procedure TFormMain.SaveDomainAndBoard;
 begin
   FRepo.PutDomain(FDomain);
   if Assigned(FCurrentPage) then
     FCurrentPage.Finalize;
 end;
 
-procedure TForm2.SplitViewClosing(Sender: TObject);
+procedure TFormMain.SplitViewClosing(Sender: TObject);
 begin
   DashboardButton.Caption := '';
 end;
 
-procedure TForm2.SplitViewOpening(Sender: TObject);
+procedure TFormMain.SplitViewOpening(Sender: TObject);
 begin
   DashboardButton.Caption := '          ' + DashboardButton.Hint;
 end;

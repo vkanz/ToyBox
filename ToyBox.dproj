@@ -102,7 +102,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="tbMainForm.pas">
-            <Form>Form2</Form>
+            <Form>FormMain</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="tbData.pas">
