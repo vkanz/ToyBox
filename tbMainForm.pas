@@ -5,15 +5,14 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ControlList, Vcl.VirtualImage,
-  tbDomain, tbBoardFrame, tbBoard, tbRepo, Vcl.WinXCtrls, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList,
-  Vcl.BaseImageCollection, Vcl.ImageCollection, Vcl.Imaging.pngimage;
+  Vcl.WinXCtrls, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList,
+  Vcl.BaseImageCollection, Vcl.ImageCollection, Vcl.Imaging.pngimage,
+  tbDomain, tbBoard, tbRepo, tbBoardIntf, Vcl.TitleBarCtrls;
 
 type
   TForm2 = class(TForm)
-    GridPanel: TGridPanel;
     SplitView: TSplitView;
     NavPanel: TPanel;
-    Image5: TImage;
     ImageCollection1: TImageCollection;
     VirtualImageList1: TVirtualImageList;
     pnlToolbar: TPanel;
@@ -22,18 +21,22 @@ type
     Panel1: TPanel;
     Image1: TImage;
     DashboardButton: TButton;
+    Panel_PageContainer: TPanel;
+    TitleBarPanel1: TTitleBarPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
     procedure MenuVirtualImageClick(Sender: TObject);
     procedure SplitViewClosing(Sender: TObject);
     procedure SplitViewOpening(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure DashboardButtonClick(Sender: TObject);
+    procedure lblTitleClick(Sender: TObject);
   private
     FDomain: TtbDomain;
-    FBoard: TtbBoard;
-    FBoardAdapter: TtbBoardAdapter;
     FRepo: TtbRepo;
+    FCurrentPage: ItbPage;
+  protected
+    procedure HandleHyperlinkClicked(ASender: TObject);
   public
     procedure SaveDomainAndBoard;
   end;
@@ -46,13 +49,24 @@ implementation
 {$R *.dfm}
 
 uses
-  tbTest, tbFileStorage;
+  ShellApi,
+  VersionUtils,
+  tbTest, tbFileStorage,
+  tbBoardFrame;
 
-procedure TForm2.Button2Click(Sender: TObject);
+{ Utils }
+procedure ShowWebPage(const AUrl: String);
 begin
-  var Lane := TtbLane.Create;
-  Lane.Title := 'Done';
-  FBoard.Lanes.Add(Lane);
+  ShellExecute(0, 'OPEN', PChar(AUrl), '', '', SW_SHOWNORMAL);
+end;
+
+procedure TForm2.DashboardButtonClick(Sender: TObject);
+begin
+  if Assigned(FCurrentPage) then
+    FCurrentPage.Finalize;
+
+  FCurrentPage := TFrameBoard.CreatePage(Panel_PageContainer, FDomain, FRepo);
+  FCurrentPage.Initialize;
 end;
 
 procedure TForm2.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -63,26 +77,47 @@ end;
 
 procedure TForm2.FormCreate(Sender: TObject);
 begin
+  Panel_PageContainer.Align := alClient;
+  SplitView.Opened := False;
+
   FDomain := TtbDomain.Create;
-  FBoard := TtbBoard.Create;
-  FBoardAdapter := TtbBoardAdapter.Create(Self);
   FRepo := TtbRepo.Create(TtbFileStorage.Create);
 
   FRepo.GetDomain(FDomain);
-  FRepo.GetBoard(FBoard);
-  //CreateTestData(FDomain, FBoard);
-
-  FBoardAdapter.GridPanel := GridPanel;
-  FBoardAdapter.Board := FBoard;
-  FBoardAdapter.Domain := FDomain;
-  FBoardAdapter.Draw;
 end;
 
 procedure TForm2.FormDestroy(Sender: TObject);
 begin
   FRepo.Free;
-  FBoard.Free;
   FDomain.Free;
+end;
+
+procedure TForm2.HandleHyperlinkClicked(ASender: TObject);
+begin
+  if ASender is TTaskDialog then
+    ShowWebPage(TTaskDialog(ASender).URL);
+end;
+
+procedure TForm2.lblTitleClick(Sender: TObject);
+begin
+  with TTaskDialog.Create(Self) do
+    try
+      CustomMainIcon := Application.Icon;
+      Caption := 'About ToyBox';
+      Title := TProgramVersionInfo.FileDescription; // + #13#10 +
+      Text := 'Copyrights: © ' + TProgramVersionInfo.LegalCopyright + #13#10 +
+        // ' <a href="https://systemt.ru/">systemt.ru</a>' + #13#10 +
+        //'Дата выпуска: ' + VersionUtils.DateOfRelease + #13#10 +
+        'Program version: ' + TProgramVersionInfo.ProductVersion + #13#10 +
+        'File version: ' + TProgramVersionInfo.FileVersion + #13#10 +
+        '<a href="https://www.google.com/search?q=toybox">Home page</a>';
+      CommonButtons := [tcbClose];
+      Flags := [tfEnableHyperlinks, tfPositionRelativeToWindow, tfUseHiconMain];
+      OnHyperlinkClicked := HandleHyperlinkClicked;
+      Execute;
+    finally
+      Free;
+    end;
 end;
 
 procedure TForm2.MenuVirtualImageClick(Sender: TObject);
@@ -93,7 +128,8 @@ end;
 procedure TForm2.SaveDomainAndBoard;
 begin
   FRepo.PutDomain(FDomain);
-  FRepo.PutBoard(FBoard);
+  if Assigned(FCurrentPage) then
+    FCurrentPage.Finalize;
 end;
 
 procedure TForm2.SplitViewClosing(Sender: TObject);
@@ -103,7 +139,7 @@ end;
 
 procedure TForm2.SplitViewOpening(Sender: TObject);
 begin
-  DashboardButton.Caption := '          '+DashboardButton.Hint;
+  DashboardButton.Caption := '          ' + DashboardButton.Hint;
 end;
 
 end.
