@@ -128,10 +128,6 @@
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="tbBoardIntf.pas"/>
-        <DCCReference Include="tbTaskFrame.pas">
-            <Form>FrameTask</Form>
-            <DesignClass>TFrame</DesignClass>
-        </DCCReference>
         <DCCReference Include="VersionUtils.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

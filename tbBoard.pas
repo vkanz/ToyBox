@@ -2,7 +2,7 @@ unit tbBoard;
 
 interface
 
-uses Vcl.ExtCtrls, Classes, Generics.Collections, Vcl.ControlList, Vcl.StdCtrls, Controls,
+uses Vcl.ExtCtrls, Classes, Generics.Collections, Vcl.ControlList, Vcl.StdCtrls, Controls, Menus,
   tbDomain, tbBoardIntf;
 
 type
@@ -58,7 +58,9 @@ type
     FBoard: TtbBoard;
     FLanes: TObjectList<TLaneControls>;
     FDomain: TtbDomain;
+    FPopupMenu: TPopupMenu;
   protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure PrepareGrid;
     procedure HandleLaneShowControl(ASender: TLaneControls; const AIndex: Integer; AControl: TControl;
       var AVisible: Boolean);
@@ -71,6 +73,8 @@ type
     property GridPanel: TGridPanel read FGridPanel write FGridPanel;
     property Board: TtbBoard read FBoard write FBoard;
     property Domain: TtbDomain read FDomain write FDomain;
+  published
+    property PopupMenu: TPopupMenu read FPopupMenu write FPopupMenu;
   end;
 
 implementation
@@ -152,6 +156,21 @@ begin
       ASender.Text.Caption := Task.Text;
 end;
 
+procedure TtbBoardAdapter.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if Operation = opRemove then
+    if AComponent = FPopupMenu then
+      FPopupMenu := nil;
+end;
+
+function NormalizeName(const ATitle: String): String;
+begin
+  for var C in ATitle do
+    if CharInSet(C, ['A'..'Z', 'a'..'z', 'À'..'ß', 'à'..'ÿ', '0'..'9', '_']) then
+      Result := Result + C;
+end;
+
 procedure TtbBoardAdapter.PrepareGrid;
 var
   LaneControls: TLaneControls;
@@ -183,11 +202,14 @@ begin
       LaneControls.Panel.BevelOuter := bvNone;
 
       {Header}
-      LaneControls.Header := TFrameLaneHeader.GetLaneHeader(LaneControls.Panel);
+      LaneControls.Header := TFrameLaneHeader.GetLaneHeader(LaneControls);
       LaneControls.Header.SetText(Lane.Title);
 
       {ControlList}
       LaneControls.ControlList := TControlList.Create(FGridPanel);
+{$IFDEF DEBUG}
+      LaneControls.ControlList.Name := 'ControlList_' + NormalizeName(Lane.Title);
+{$ENDIF}
       LaneControls.ControlList.Parent := LaneControls.Panel;
       LaneControls.ControlList.Align := alClient;
       with LaneControls.ControlList do
@@ -226,6 +248,7 @@ begin
       FGridPanel.ControlCollection.AddControl(LaneControls.Panel);
     end;
 
+     { Make Lanes all the same width }
     for var I := 0 to FGridPanel.ColumnCollection.Count - 1 do
       FGridPanel.ColumnCollection[I].Value := 100 div FGridPanel.ColumnCollection.Count;
   finally
@@ -255,17 +278,23 @@ begin
     and (Self <> TTaskDragObject(Source).LaneControls); //TODO Moving within one Lane
 end;
 
+type
+  TControlListAux = class(TControlList);
+
 procedure TLaneControls.HandleControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
+//  var TargetIndex := Y div (ControlList.Height div
+//    (TControlListAux(ControlList).LastDrawItemIndex - TControlListAux(ControlList).FirstDrawItemIndex));
   if IsDragObject(Source) and (Source is TTaskDragObject) then
     if Assigned(FOnDropItem) then {TODO calculate target ItemIndex}
-      FOnDropItem(TTaskDragObject(Source).LaneControls,  Self);
+      FOnDropItem(TTaskDragObject(Source).LaneControls, Self);
 end;
 
 procedure TLaneControls.HandleControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
 begin
-  if Assigned(FOnShowControl) then
-    FOnShowControl(Self, AIndex, AControl, AVisible);
+  if AIndex < ControlList.ItemCount then {It happens!}
+    if Assigned(FOnShowControl) then
+      FOnShowControl(Self, AIndex, AControl, AVisible);
 end;
 
 { TPanelHeader }

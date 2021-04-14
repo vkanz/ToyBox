@@ -38,7 +38,13 @@ object FrameBoard: TFrameBoard
     Align = alClient
     BevelOuter = bvNone
     Caption = 'GridPanel'
-    ColumnCollection = <>
+    ColumnCollection = <
+      item
+        Value = 50.000000000000000000
+      end
+      item
+        Value = 50.000000000000000000
+      end>
     ControlCollection = <>
     ExpandStyle = emAddColumns
     RowCollection = <
@@ -49,7 +55,13 @@ object FrameBoard: TFrameBoard
         SizeStyle = ssAuto
       end>
     TabOrder = 1
-    ExplicitTop = 8
-    ExplicitHeight = 41
+  end
+  object PopupMenu_Task: TPopupMenu
+    Left = 384
+    Top = 112
+    object MenuItem_AddTask: TMenuItem
+      Caption = 'Add Task'
+      OnClick = MenuItem_AddTaskClick
+    end
   end
 end

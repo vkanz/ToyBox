@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
-  tbBoardIntf, Vcl.Menus;
+  Vcl.Menus,
+  tbBoardIntf, tbBoard;
 
 type
   TFrameLaneHeader = class(TFrame, ItbLaneHeader)
@@ -18,9 +19,10 @@ type
     procedure MenuItem_AddTaskClick(Sender: TObject);
   private
     FPopupMenu: TPopupMenu;
+    FLaneControls: TLaneControls;
   public
     constructor Create(AOwner: TComponent); override;
-    class function GetLaneHeader(AParent: TWinControl): ItbLaneHeader;
+    class function GetLaneHeader(ALaneControls: TLaneControls): ItbLaneHeader;
     { ItbBoardHeader }
     procedure SetText(AValue: String);
   end;
@@ -29,7 +31,9 @@ implementation
 
 {$R *.dfm}
 
-{ TFrame3 }
+uses Types, UITypes;
+
+{ TFrameLaneHeader }
 
 constructor TFrameLaneHeader.Create(AOwner: TComponent);
 begin
@@ -37,12 +41,13 @@ begin
   FPopupMenu := PopupMenu1;
 end;
 
-class function TFrameLaneHeader.GetLaneHeader(AParent: TWinControl): ItbLaneHeader;
+class function TFrameLaneHeader.GetLaneHeader(ALaneControls: TLaneControls): ItbLaneHeader;
 var
   Instance: TFrameLaneHeader;
 begin
   Instance := Create(nil);
-  Instance.Parent := AParent;
+  Instance.FLaneControls := ALaneControls;
+  Instance.Parent := ALaneControls.Panel;
   Instance.Align := alTop;
   Instance.Height := Instance.GridPanel.Height;
   Instance.Label_Header.Font.Style := Instance.Label_Header.Font.Style + [fsBold];

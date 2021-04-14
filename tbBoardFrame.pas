@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.VirtualImage,
   Vcl.StdCtrls, Vcl.ControlList, Vcl.ExtCtrls,
-  tbDomain, tbBoardIntf, tbRepo, tbBoard;
+  tbDomain, tbBoardIntf, tbRepo, tbBoard, Vcl.Menus;
 
 type
   TFrameBoard = class(TFrame, ItbPage)
@@ -14,7 +14,10 @@ type
     GridPanel: TGridPanel;
     Button1: TButton;
     Button2: TButton;
+    PopupMenu_Task: TPopupMenu;
+    MenuItem_AddTask: TMenuItem;
     procedure Button2Click(Sender: TObject);
+    procedure MenuItem_AddTaskClick(Sender: TObject);
   private
     FDomain: TtbDomain;
     FRepo: TtbRepo;
@@ -103,6 +106,11 @@ begin
   FBoardAdapter.Board := FBoard;
   FBoardAdapter.Domain := FDomain;
   FBoardAdapter.Draw;
+end;
+
+procedure TFrameBoard.MenuItem_AddTaskClick(Sender: TObject);
+begin
+  //
 end;
 
 end.

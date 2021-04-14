@@ -53,8 +53,6 @@ object FrameLaneHeader: TFrameLaneHeader
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitLeft = 4
-      ExplicitTop = 4
       ExplicitWidth = 6
       ExplicitHeight = 13
     end
@@ -67,7 +65,7 @@ object FrameLaneHeader: TFrameLaneHeader
       Caption = '...'
       Flat = True
       OnClick = SpeedButtonClick
-      ExplicitLeft = 152
+      ExplicitLeft = 299
       ExplicitTop = 0
     end
   end

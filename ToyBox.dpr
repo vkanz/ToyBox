@@ -8,12 +8,11 @@ uses
   tbDomain in 'tbDomain.pas',
   tbRepo in 'tbRepo.pas',
   tbFileStorage in 'tbFileStorage.pas',
-  SerializeUtils in 'SerializeUtils.pas' {$R *.res},
+  SerializeUtils in 'SerializeUtils.pas',
   tbTest in 'tbTest.pas',
   tbBoard in 'tbBoard.pas',
   tbLaneHeaderFrame in 'tbLaneHeaderFrame.pas' {FrameLaneHeader: TFrame},
   tbBoardIntf in 'tbBoardIntf.pas',
-  tbTaskFrame in 'tbTaskFrame.pas' {FrameTask: TFrame},
   VersionUtils in 'VersionUtils.pas';
 
 {$R *.res}
