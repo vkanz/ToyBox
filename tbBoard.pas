@@ -161,7 +161,9 @@ begin
   inherited Notification(AComponent, Operation);
   if Operation = opRemove then
     if AComponent = FPopupMenu then
-      FPopupMenu := nil;
+      FPopupMenu := nil
+    else if AComponent = FGridPanel then
+      FGridPanel := nil;
 end;
 
 function NormalizeName(const ATitle: String): String;
