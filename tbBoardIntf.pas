@@ -2,11 +2,13 @@ unit tbBoardIntf;
 
 interface
 
-uses tbDomain;
+uses Controls,
+  tbDomain;
 
 type
   ItbLaneHeader = interface
-    procedure SetText(AValue: String);
+    procedure SetHeaderText(AValue: String);
+    procedure SetHeaderParent(AValue: TWinControl; AAlign: TAlign);
   end;
 
 type

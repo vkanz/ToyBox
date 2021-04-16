@@ -1,3 +1,13 @@
+// *************************************************************************** }
+//
+// ToyBox task management tool
+//
+// Copyright (c) 2021-2020
+//
+// https://github.com/vkanz/toybox
+//
+// ***************************************************************************
+
 unit tbBoard;
 
 interface
@@ -11,12 +21,14 @@ type
     class procedure BuildDefault(ATarget: TtbBoard);
   end;
 
+{Simple implementation of ItbLaneHeader}
 type
   TPanelHeader = class(TPanel, ItbLaneHeader)
   public
     class function GetLaneHeader(AParent: TWinControl): ItbLaneHeader;
     { ItbLaneHeader }
-    procedure SetText(AValue: String);
+    procedure SetHeaderText(AValue: String);
+    procedure SetHeaderParent(AValue: TWinControl; AAlign: TAlign);
   end;
 
 type
@@ -69,6 +81,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Draw;
+    function BuildHeader(ALaneControls: TLaneControls): ItbLaneHeader;
     {}
     property GridPanel: TGridPanel read FGridPanel write FGridPanel;
     property Board: TtbBoard read FBoard write FBoard;
@@ -100,6 +113,12 @@ begin
 end;
 
 { TtbBoardAdapter }
+
+function TtbBoardAdapter.BuildHeader(ALaneControls: TLaneControls): ItbLaneHeader;
+begin
+  Result := TFrameLaneHeader.Create(nil);
+  Result.SetHeaderParent(ALaneControls.Panel, alTop);
+end;
 
 constructor TtbBoardAdapter.Create(AOwner: TComponent);
 begin
@@ -204,8 +223,8 @@ begin
       LaneControls.Panel.BevelOuter := bvNone;
 
       {Header}
-      LaneControls.Header := TFrameLaneHeader.GetLaneHeader(LaneControls);
-      LaneControls.Header.SetText(Lane.Title);
+      LaneControls.Header := BuildHeader(LaneControls);
+      LaneControls.Header.SetHeaderText(Lane.Title);
 
       {ControlList}
       LaneControls.ControlList := TControlList.Create(FGridPanel);
@@ -315,7 +334,13 @@ begin
   Result := Instance;
 end;
 
-procedure TPanelHeader.SetText(AValue: String);
+procedure TPanelHeader.SetHeaderParent(AValue: TWinControl; AAlign: TAlign);
+begin
+  Parent := AValue;
+  Align := AAlign;
+end;
+
+procedure TPanelHeader.SetHeaderText(AValue: String);
 begin
   Caption := AValue;
 end;

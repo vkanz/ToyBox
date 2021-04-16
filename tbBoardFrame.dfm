@@ -59,9 +59,41 @@ object FrameBoard: TFrameBoard
   object PopupMenu_Task: TPopupMenu
     Left = 384
     Top = 112
-    object MenuItem_AddTask: TMenuItem
-      Caption = 'Add Task'
-      OnClick = MenuItem_AddTaskClick
+    object ActionLaneAddTask1: TMenuItem
+      Action = Action_LaneAddTask
+    end
+  end
+  object ActionList: TActionList
+    Left = 400
+    Top = 200
+    object Action_TaskEdit: TAction
+      Category = 'task'
+      Caption = 'Action_TaskEdit'
+    end
+    object Action_TaskDelete: TAction
+      Category = 'task'
+      Caption = 'Action_TaskDelete'
+    end
+    object Action_LaneAddTask: TAction
+      Category = 'lane'
+      Caption = 'Action_LaneAddTask'
+      OnExecute = Action_LaneAddTaskExecute
+    end
+    object Action_LaneSortByName: TAction
+      Category = 'lane'
+      Caption = 'Action_LaneSortByName'
+    end
+    object Action_LaneSortByCreated: TAction
+      Category = 'lane'
+      Caption = 'Action_LaneSortByCreated'
+    end
+    object Action_LaneSortAsc: TAction
+      Category = 'lane'
+      Caption = 'Action_LaneSortAsc'
+    end
+    object Action_LaneSortDesc: TAction
+      Category = 'lane'
+      Caption = 'Action_LaneSortDesc'
     end
   end
 end

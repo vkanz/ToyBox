@@ -6,7 +6,12 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
   Vcl.Menus,
-  tbBoardIntf, tbBoard;
+  tbBoardIntf, System.Actions, Vcl.ActnList;
+
+type
+  TtbLaneHeaderBuilder = class
+    //class function GetLaneHeader(ALaneControls: TLaneControls): ItbLaneHeader;
+  end;
 
 type
   TFrameLaneHeader = class(TFrame, ItbLaneHeader)
@@ -15,16 +20,18 @@ type
     SpeedButton: TSpeedButton;
     PopupMenu1: TPopupMenu;
     MenuItem_AddTask: TMenuItem;
+    ActionList1: TActionList;
+    Action1: TAction;
     procedure SpeedButtonClick(Sender: TObject);
     procedure MenuItem_AddTaskClick(Sender: TObject);
   private
     FPopupMenu: TPopupMenu;
-    FLaneControls: TLaneControls;
   public
     constructor Create(AOwner: TComponent); override;
-    class function GetLaneHeader(ALaneControls: TLaneControls): ItbLaneHeader;
+    class function GetLaneHeader: ItbLaneHeader;
     { ItbBoardHeader }
-    procedure SetText(AValue: String);
+    procedure SetHeaderText(AValue: String);
+    procedure SetHeaderParent(AValue: TWinControl; AAlign: TAlign);
   end;
 
 implementation
@@ -38,20 +45,13 @@ uses Types, UITypes;
 constructor TFrameLaneHeader.Create(AOwner: TComponent);
 begin
   inherited;
+  Label_Header.Font.Style := Label_Header.Font.Style + [fsBold];
   FPopupMenu := PopupMenu1;
 end;
 
-class function TFrameLaneHeader.GetLaneHeader(ALaneControls: TLaneControls): ItbLaneHeader;
-var
-  Instance: TFrameLaneHeader;
+class function TFrameLaneHeader.GetLaneHeader: ItbLaneHeader;
 begin
-  Instance := Create(nil);
-  Instance.FLaneControls := ALaneControls;
-  Instance.Parent := ALaneControls.Panel;
-  Instance.Align := alTop;
-  Instance.Height := Instance.GridPanel.Height;
-  Instance.Label_Header.Font.Style := Instance.Label_Header.Font.Style + [fsBold];
-  Result := Instance;
+  Result := Create(nil);
 end;
 
 procedure TFrameLaneHeader.MenuItem_AddTaskClick(Sender: TObject);
@@ -59,7 +59,14 @@ begin
 //
 end;
 
-procedure TFrameLaneHeader.SetText(AValue: String);
+procedure TFrameLaneHeader.SetHeaderParent(AValue: TWinControl; AAlign: TAlign);
+begin
+  Parent := AValue;
+  Align := AAlign;
+  Height := GridPanel.Height;
+end;
+
+procedure TFrameLaneHeader.SetHeaderText(AValue: String);
 begin
   Label_Header.Caption := AValue;
 end;

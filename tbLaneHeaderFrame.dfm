@@ -77,4 +77,11 @@ object FrameLaneHeader: TFrameLaneHeader
       OnClick = MenuItem_AddTaskClick
     end
   end
+  object ActionList1: TActionList
+    Left = 144
+    Top = 104
+    object Action1: TAction
+      Caption = 'Action1'
+    end
+  end
 end
