@@ -69,4 +69,22 @@ object FrameLaneHeader: TFrameLaneHeader
       ExplicitTop = 0
     end
   end
+  object ControlList: TControlList
+    Left = 0
+    Top = 24
+    Width = 320
+    Height = 216
+    Align = alClient
+    ItemMargins.Left = 0
+    ItemMargins.Top = 0
+    ItemMargins.Right = 0
+    ItemMargins.Bottom = 0
+    ParentColor = False
+    TabOrder = 1
+    OnDragDrop = ControlListDragDrop
+    OnDragOver = ControlListDragOver
+    OnShowControl = ControlListShowControl
+    OnMouseDown = ControlListMouseDown
+    OnStartDrag = ControlListStartDrag
+  end
 end

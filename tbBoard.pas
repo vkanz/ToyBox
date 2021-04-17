@@ -21,16 +21,6 @@ type
     class procedure BuildDefault(ATarget: TtbBoard);
   end;
 
-{Simple implementation of ItbLaneHeader}
-type
-  TPanelHeader = class(TPanel, ItbLaneHeader)
-  public
-    class function GetLaneHeader(AParent: TWinControl): ItbLaneHeader;
-    { ItbLaneHeader }
-    procedure SetHeaderText(AValue: String);
-    procedure SetHeaderParent(AValue: TWinControl; AAlign: TAlign);
-  end;
-
 type
   TLaneControls = class;
 
@@ -45,19 +35,10 @@ type
   public
     Lane: TtbLane;
     Panel: TPanel;
-    Header: ItbLaneHeader;
+    Header: ItbLaneFrame;
     ControlList: TControlList;
     Title: TLabel;
     Text: TLabel;
-    procedure HandleControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
-    {Manual BeginDrag}
-    procedure HandleControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    {Creation of DragObject}
-    procedure HandleControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
-    {Accepting Drag Object}
-    procedure HandleControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
-    {Dropping}
-    procedure HandleControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
     {}
     property OnShowControl: TLaneShowControl read FOnShowControl write FOnShowControl;
     property OnDropItem: TLaneIndexProcedure read FOnDropItem write FOnDropItem;
@@ -66,26 +47,23 @@ type
 type
   TtbBoardAdapter = class(TComponent)
   private
-    FGridPanel: TGridPanel;
     FBoard: TtbBoard;
     FLanes: TObjectList<TLaneControls>;
     FDomain: TtbDomain;
     FPopupMenu: TPopupMenu;
+    FBoardPage: ItbBoardPage;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure PrepareGrid;
-    procedure HandleLaneShowControl(ASender: TLaneControls; const AIndex: Integer; AControl: TControl;
-      var AVisible: Boolean);
     procedure HandleLaneDropItem(ASource, ATarget: TLaneControls);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Draw;
-    function BuildHeader(ALaneControls: TLaneControls): ItbLaneHeader;
     {}
-    property GridPanel: TGridPanel read FGridPanel write FGridPanel;
     property Board: TtbBoard read FBoard write FBoard;
     property Domain: TtbDomain read FDomain write FDomain;
+    property BoardPage: ItbBoardPage read FBoardPage write FBoardPage;
   published
     property PopupMenu: TPopupMenu read FPopupMenu write FPopupMenu;
   end;
@@ -96,13 +74,7 @@ uses Vcl.Graphics, System.UITypes, SysUtils,
 {$IFDEF DEBUG}
   Dialogs,
 {$ENDIF}
-  tbLaneHeaderFrame;
-
-type
-  TTaskDragObject = class(TDragObjectEx)
-    LaneControls: TLaneControls;
-    constructor Create(ALaneControls: TLaneControls);
-  end;
+  tbLaneFrame;
 
 { TtbBoardBuilder }
 
@@ -113,12 +85,6 @@ begin
 end;
 
 { TtbBoardAdapter }
-
-function TtbBoardAdapter.BuildHeader(ALaneControls: TLaneControls): ItbLaneHeader;
-begin
-  Result := TFrameLaneHeader.Create(nil);
-  Result.SetHeaderParent(ALaneControls.Panel, alTop);
-end;
 
 constructor TtbBoardAdapter.Create(AOwner: TComponent);
 begin
@@ -160,29 +126,10 @@ begin
   end;
 end;
 
-procedure TtbBoardAdapter.HandleLaneShowControl(ASender: TLaneControls; const AIndex: Integer; AControl: TControl;
-  var AVisible: Boolean);
-var
-  TaskID: Integer;
-  Task: TtbTask;
-begin
-  Assert(FDomain <> nil);
-  TaskID := ASender.Lane.GetTaskId(AIndex);
-  if FDomain.FindTaskById(TaskID, Task) then
-    if AControl = ASender.Title then
-      ASender.Title.Caption := Task.Title
-    else if AControl = ASender.Text then
-      ASender.Text.Caption := Task.Text;
-end;
-
 procedure TtbBoardAdapter.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited Notification(AComponent, Operation);
-  if Operation = opRemove then
-    if AComponent = FPopupMenu then
-      FPopupMenu := nil
-    else if AComponent = FGridPanel then
-      FGridPanel := nil;
+
 end;
 
 function NormalizeName(const ATitle: String): String;
@@ -196,162 +143,17 @@ end;
 procedure TtbBoardAdapter.PrepareGrid;
 var
   LaneControls: TLaneControls;
+  Lane: TtbLane;
 begin
-  Assert(FGridPanel <> nil);
   Assert(FBoard <> nil);
 
-  FGridPanel.ColumnCollection.Clear;
-  FGridPanel.RowCollection.Clear;
-
-  FGridPanel.ExpandStyle := emAddColumns;
-  FGridPanel.RowCollection.Add;
-
-  FGridPanel.ColumnCollection.BeginUpdate;
+  FBoardPage.BeginUpdate;
   try
-    for var Lane in FBoard.Lanes do
-    begin
-      LaneControls := TLaneControls.Create;
-      LaneControls.Lane := Lane;
-      LaneControls.OnShowControl := HandleLaneShowControl;
-      LaneControls.OnDropItem := HandleLaneDropItem;
-      FLanes.Add(LaneControls);
-
-      FGridPanel.ColumnCollection.Add.SizeStyle := ssPercent;
-      {Panel}
-      LaneControls.Panel := TPanel.Create(FGridPanel);
-      LaneControls.Panel.Parent := FGridPanel;
-      LaneControls.Panel.Align := alClient;
-      LaneControls.Panel.BevelOuter := bvNone;
-
-      {Header}
-      LaneControls.Header := BuildHeader(LaneControls);
-      LaneControls.Header.SetHeaderText(Lane.Title);
-
-      {ControlList}
-      LaneControls.ControlList := TControlList.Create(FGridPanel);
-{$IFDEF DEBUG}
-      LaneControls.ControlList.Name := 'ControlList_' + NormalizeName(Lane.Title);
-{$ENDIF}
-      LaneControls.ControlList.Parent := LaneControls.Panel;
-      LaneControls.ControlList.Align := alClient;
-      with LaneControls.ControlList do
-      begin
-        AlignWithMargins := True;
-        ItemColor := clBtnFace;
-        ItemMargins.Left := 2;
-        ItemMargins.Top := 2;
-        ItemMargins.Right := 2;
-        ItemMargins.Bottom := 2;
-        ItemSelectionOptions.HotColorAlpha := 20;
-        ItemSelectionOptions.SelectedColorAlpha := 30;
-        ItemSelectionOptions.FocusedColorAlpha := 40;
-        OnShowControl := LaneControls.HandleControlListShowControl;
-        OnMouseDown := LaneControls.HandleControlListMouseDown;
-        OnStartDrag := LaneControls.HandleControlListStartDrag;
-        OnDragOver := LaneControls.HandleControlListDragOver;
-        OnDragDrop := LaneControls.HandleControlListDragDrop;
-      end;
-
-      {Title}
-      LaneControls.Title := TLabel.Create(FGridPanel);
-      LaneControls.ControlList.AddControlToItem(LaneControls.Title);
-      LaneControls.Title.Left := 6;
-      LaneControls.Title.Top := 6;
-
-      {Text}
-      LaneControls.Text := TLabel.Create(FGridPanel);
-      LaneControls.ControlList.AddControlToItem(LaneControls.Text);
-      LaneControls.Text.Left := 6;
-      LaneControls.Text.Top := 40;
-
-      LaneControls.ControlList.ItemCount := Lane.GetCount;
-
-      {}
-      FGridPanel.ControlCollection.AddControl(LaneControls.Panel);
-    end;
-
-     { Make Lanes all the same width }
-    for var I := 0 to FGridPanel.ColumnCollection.Count - 1 do
-      FGridPanel.ColumnCollection[I].Value := 100 div FGridPanel.ColumnCollection.Count;
+    for Lane in FBoard.Lanes do
+      FBoardPage.AddLane(Lane);
   finally
-    FGridPanel.ColumnCollection.EndUpdate;
+    FBoardPage.EndUpdate;
   end;
-end;
-
-{ TLaneControls }
-
-procedure TLaneControls.HandleControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X,
-  Y: Integer);
-begin
-  if (Button = mbLeft) then
-    if Sender is TControlList then
-      TControlList(Sender).BeginDrag(False);
-end;
-
-procedure TLaneControls.HandleControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
-begin
-  DragObject := TTaskDragObject.Create(Self);
-end;
-
-procedure TLaneControls.HandleControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
-  var Accept: Boolean);
-begin
-  Accept := IsDragObject(Source) and (Source is TTaskDragObject)
-    and (Self <> TTaskDragObject(Source).LaneControls); //TODO Moving within one Lane
-end;
-
-type
-  TControlListAux = class(TControlList);
-
-procedure TLaneControls.HandleControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
-begin
-//  var TargetIndex := Y div (ControlList.Height div
-//    (TControlListAux(ControlList).LastDrawItemIndex - TControlListAux(ControlList).FirstDrawItemIndex));
-  if IsDragObject(Source) and (Source is TTaskDragObject) then
-    if Assigned(FOnDropItem) then {TODO calculate target ItemIndex}
-      FOnDropItem(TTaskDragObject(Source).LaneControls, Self);
-end;
-
-procedure TLaneControls.HandleControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
-begin
-  if AIndex < ControlList.ItemCount then {It happens!}
-    if Assigned(FOnShowControl) then
-      FOnShowControl(Self, AIndex, AControl, AVisible);
-end;
-
-{ TPanelHeader }
-
-class function TPanelHeader.GetLaneHeader(AParent: TWinControl): ItbLaneHeader;
-var
-  Instance: TPanelHeader;
-begin
-  Instance := Create(nil);
-  Instance.Parent := AParent;
-  Instance.Align := alTop;
-  Instance.BevelOuter := bvNone;
-  Instance.Height := 24;
-  Instance.Font.Style := Instance.Font.Style + [fsBold];
-  Instance.Alignment := taCenter;
-  Result := Instance;
-end;
-
-procedure TPanelHeader.SetHeaderParent(AValue: TWinControl; AAlign: TAlign);
-begin
-  Parent := AValue;
-  Align := AAlign;
-end;
-
-procedure TPanelHeader.SetHeaderText(AValue: String);
-begin
-  Caption := AValue;
-end;
-
-{ TTaskDragObject }
-
-constructor TTaskDragObject.Create(ALaneControls: TLaneControls);
-begin
-  inherited Create;
-  LaneControls := ALaneControls;
 end;
 
 end.

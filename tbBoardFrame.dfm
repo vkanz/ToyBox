@@ -12,21 +12,13 @@ object FrameBoard: TFrameBoard
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    object Button1: TButton
-      Left = 296
-      Top = 8
-      Width = 75
-      Height = 25
-      Caption = 'Button1'
-      TabOrder = 0
-    end
     object Button2: TButton
       Left = 384
       Top = 10
       Width = 75
       Height = 25
       Caption = 'Button2'
-      TabOrder = 1
+      TabOrder = 0
       OnClick = Button2Click
     end
   end

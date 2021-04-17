@@ -6,9 +6,14 @@ uses Controls,
   tbDomain;
 
 type
-  ItbLaneHeader = interface
+  ItbLaneX = interface
+    function GetTaskId(AIndex: Integer): Integer;
+  end;
+
+type
+  ItbLaneFrame = interface
     procedure SetHeaderText(AValue: String);
-    procedure SetHeaderParent(AValue: TWinControl; AAlign: TAlign);
+    procedure SetLane(AValue: TtbLane);
   end;
 
 type
@@ -19,6 +24,13 @@ type
   ItbPage = interface
     procedure Initialize;
     procedure Finalize;
+  end;
+
+type
+  ItbBoardPage = interface(ItbPage)
+    procedure BeginUpdate;
+    procedure EndUpdate;
+    procedure AddLane(ALane: TtbLane);
   end;
 
 implementation

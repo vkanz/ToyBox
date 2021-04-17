@@ -11,7 +11,7 @@ uses
   SerializeUtils in 'SerializeUtils.pas',
   tbTest in 'tbTest.pas',
   tbBoard in 'tbBoard.pas',
-  tbLaneHeaderFrame in 'tbLaneHeaderFrame.pas' {FrameLaneHeader: TFrame},
+  tbLaneFrame in 'tbLaneFrame.pas' {FrameLaneHeader: TFrame},
   tbBoardIntf in 'tbBoardIntf.pas',
   VersionUtils in 'VersionUtils.pas';
 

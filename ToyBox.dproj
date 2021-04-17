@@ -123,7 +123,7 @@
         </DCCReference>
         <DCCReference Include="tbTest.pas"/>
         <DCCReference Include="tbBoard.pas"/>
-        <DCCReference Include="tbLaneHeaderFrame.pas">
+        <DCCReference Include="tbLaneFrame.pas">
             <Form>FrameLaneHeader</Form>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
