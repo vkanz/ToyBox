@@ -43,7 +43,7 @@ object FrameLaneHeader: TFrameLaneHeader
       Left = 3
       Top = 3
       Width = 290
-      Height = 21
+      Height = 18
       Align = alClient
       Alignment = taCenter
       Caption = '?'
@@ -67,21 +67,6 @@ object FrameLaneHeader: TFrameLaneHeader
       OnClick = SpeedButtonClick
       ExplicitLeft = 299
       ExplicitTop = 0
-    end
-  end
-  object PopupMenu1: TPopupMenu
-    Left = 208
-    Top = 160
-    object MenuItem_AddTask: TMenuItem
-      Caption = 'Create Task'
-      OnClick = MenuItem_AddTaskClick
-    end
-  end
-  object ActionList1: TActionList
-    Left = 144
-    Top = 104
-    object Action1: TAction
-      Caption = 'Action1'
     end
   end
 end

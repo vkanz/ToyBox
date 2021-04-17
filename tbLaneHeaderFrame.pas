@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
   Vcl.Menus,
-  tbBoardIntf, System.Actions, Vcl.ActnList;
+  tbBoardIntf, System.Actions, Vcl.ActnList, Vcl.ControlList;
 
 type
   TtbLaneHeaderBuilder = class
@@ -18,14 +18,12 @@ type
     Label_Header: TLabel;
     GridPanel: TGridPanel;
     SpeedButton: TSpeedButton;
-    PopupMenu1: TPopupMenu;
-    MenuItem_AddTask: TMenuItem;
-    ActionList1: TActionList;
-    Action1: TAction;
     procedure SpeedButtonClick(Sender: TObject);
     procedure MenuItem_AddTaskClick(Sender: TObject);
   private
     FPopupMenu: TPopupMenu;
+  protected
+    procedure SetupControlList;
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLaneHeader: ItbLaneHeader;
@@ -45,8 +43,8 @@ uses Types, UITypes;
 constructor TFrameLaneHeader.Create(AOwner: TComponent);
 begin
   inherited;
+  SetupControlList;
   Label_Header.Font.Style := Label_Header.Font.Style + [fsBold];
-  FPopupMenu := PopupMenu1;
 end;
 
 class function TFrameLaneHeader.GetLaneHeader: ItbLaneHeader;
@@ -69,6 +67,11 @@ end;
 procedure TFrameLaneHeader.SetHeaderText(AValue: String);
 begin
   Label_Header.Caption := AValue;
+end;
+
+procedure TFrameLaneHeader.SetupControlList;
+begin
+
 end;
 
 procedure TFrameLaneHeader.SpeedButtonClick(Sender: TObject);

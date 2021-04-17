@@ -187,6 +187,7 @@ end;
 
 function NormalizeName(const ATitle: String): String;
 begin
+  Result := '';
   for var C in ATitle do
     if CharInSet(C, ['A'..'Z', 'a'..'z', 'À'..'ß', 'à'..'ÿ', '0'..'9', '_']) then
       Result := Result + C;
