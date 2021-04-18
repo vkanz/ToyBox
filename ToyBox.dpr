@@ -13,7 +13,8 @@ uses
   tbBoard in 'tbBoard.pas',
   tbLaneFrame in 'tbLaneFrame.pas' {FrameLaneHeader: TFrame},
   tbBoardIntf in 'tbBoardIntf.pas',
-  VersionUtils in 'VersionUtils.pas';
+  VersionUtils in 'VersionUtils.pas',
+  tbUtils in 'tbUtils.pas';
 
 {$R *.res}
 

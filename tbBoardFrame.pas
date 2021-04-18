@@ -32,7 +32,6 @@ type
     FBoard: TtbBoard;
   protected
     procedure CreateDefaultLanes;
-    procedure BuildMenu(const ACategory);
     procedure PrepareGridPanel;
     procedure HandleLaneDropItem(ASource, ATarget: TFrameLaneHeader);
   public
@@ -72,11 +71,6 @@ end;
 procedure TFrameBoard.BeginUpdate;
 begin
   GridPanel.BeginUpdate;
-end;
-
-procedure TFrameBoard.BuildMenu(const ACategory);
-begin
-
 end;
 
 procedure TFrameBoard.Button2Click(Sender: TObject);
@@ -137,6 +131,7 @@ begin
   { Make Lanes all the same width }
   for var I := 0 to GridPanel.ColumnCollection.Count - 1 do
     GridPanel.ColumnCollection[I].Value := 100 div GridPanel.ColumnCollection.Count;
+
   GridPanel.EndUpdate;
 end;
 
@@ -154,7 +149,6 @@ begin
 
   FBoardAdapter.BoardPage := Self;
   FBoardAdapter.Board := FBoard;
-  FBoardAdapter.Domain := FDomain;
   FBoardAdapter.Draw;
 end;
 

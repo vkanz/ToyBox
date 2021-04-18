@@ -22,7 +22,7 @@ type
     Image1: TImage;
     DashboardButton: TButton;
     Panel_PageContainer: TPanel;
-    TitleBarPanel1: TTitleBarPanel;
+    TitleBarPanel: TTitleBarPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure MenuVirtualImageClick(Sender: TObject);
@@ -31,6 +31,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure DashboardButtonClick(Sender: TObject);
     procedure lblTitleClick(Sender: TObject);
+    procedure TitleBarPanelCustomButtons0Click(Sender: TObject);
   private
     FDomain: TtbDomain;
     FRepo: TtbRepo;
@@ -51,7 +52,9 @@ implementation
 uses
   ShellApi,
   VersionUtils,
-  tbTest, tbFileStorage,
+  tbTest,
+  tbUtils,
+  tbFileStorage,
   tbBoardFrame;
 
 { Utils }
@@ -141,6 +144,11 @@ end;
 procedure TFormMain.SplitViewOpening(Sender: TObject);
 begin
   DashboardButton.Caption := '          ' + DashboardButton.Hint;
+end;
+
+procedure TFormMain.TitleBarPanelCustomButtons0Click(Sender: TObject);
+begin
+  tbUtils.ShowFile(TtbFileStorage.GetInstance.Folder);
 end;
 
 end.

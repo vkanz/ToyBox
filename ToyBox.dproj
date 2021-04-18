@@ -129,6 +129,7 @@
         </DCCReference>
         <DCCReference Include="tbBoardIntf.pas"/>
         <DCCReference Include="VersionUtils.pas"/>
+        <DCCReference Include="tbUtils.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -193,11 +193,12 @@ begin
 end;
 
 procedure TFrameLaneHeader.SpeedButtonClick(Sender: TObject);
-var
-  Pnt: TPoint;
-  Btn: TSpeedButton;
+//var
+//  Pnt: TPoint;
+//  Btn: TSpeedButton;
 begin
-  Btn := Sender as TSpeedButton;
+
+//  Btn := Sender as TSpeedButton;
 //  if FPopupMenu <> nil then
 //  begin
 //    { TODO Calculate menu width }

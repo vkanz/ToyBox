@@ -5,7 +5,7 @@ object FormMain: TFormMain
   ClientHeight = 397
   ClientWidth = 618
   Color = clBtnFace
-  CustomTitleBar.Control = TitleBarPanel1
+  CustomTitleBar.Control = TitleBarPanel
   CustomTitleBar.Enabled = True
   CustomTitleBar.Height = 31
   CustomTitleBar.BackgroundColor = clWhite
@@ -848,12 +848,23 @@ object FormMain: TFormMain
     BevelOuter = bvNone
     TabOrder = 1
   end
-  object TitleBarPanel1: TTitleBarPanel
+  object TitleBarPanel: TTitleBarPanel
     Left = 0
     Top = 0
     Width = 618
     Height = 30
-    CustomButtons = <>
+    CustomButtons = <
+      item
+        ButtonType = sbCustom
+        Enabled = True
+        Hint = 'Options'
+        Width = 32
+        Visible = True
+        OnClick = TitleBarPanelCustomButtons0Click
+      end>
+    DesignSize = (
+      618
+      30)
   end
   object ImageCollection1: TImageCollection
     Images = <

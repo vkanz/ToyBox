@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{03D330A8-2B2E-4F2D-8C39-43CE2F922D8E}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ToyBox.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\_Projects\shturman.4\Clinic\ClinicAssistant\ClinicAssistant.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ToyBox">
+        <MSBuild Projects="ToyBox.dproj"/>
+    </Target>
+    <Target Name="ToyBox:Clean">
+        <MSBuild Projects="ToyBox.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ToyBox:Make">
+        <MSBuild Projects="ToyBox.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ClinicAssistant">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Clinic\ClinicAssistant\ClinicAssistant.dproj"/>
+    </Target>
+    <Target Name="ClinicAssistant:Clean">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Clinic\ClinicAssistant\ClinicAssistant.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ClinicAssistant:Make">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Clinic\ClinicAssistant\ClinicAssistant.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ToyBox;ClinicAssistant"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ToyBox:Clean;ClinicAssistant:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ToyBox:Make;ClinicAssistant:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

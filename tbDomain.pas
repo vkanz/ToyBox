@@ -99,13 +99,25 @@ type
   end;
 
 type
+  TtbBoard = class;
+
   TtbLaneList = class(TObjectList<TtbLane>)
+  private
+    FOwner: TtbBoard;
+    FModified: Boolean;
+    procedure SetModified(const Value: Boolean);
+  protected
+    procedure Notify(const Value: TtbLane; Action: TCollectionNotification); override;
+  public
+    property Modified: Boolean read FModified write SetModified;
   end;
 
-type
   TtbBoard = class
   private
     FLanes: TtbLaneList;
+    FModified: Boolean;
+  protected
+    procedure ChildChanged(ASender: TObject);
   public
     constructor Create;
     destructor Destroy; override;
@@ -189,6 +201,11 @@ end;
 
 { TtbBoard }
 
+procedure TtbBoard.ChildChanged(ASender: TObject);
+begin
+
+end;
+
 procedure TtbBoard.Clear;
 begin
   FLanes.Clear;
@@ -197,6 +214,7 @@ end;
 constructor TtbBoard.Create;
 begin
   FLanes := TtbLaneList.Create;
+  FLanes.FOwner := Self;
 end;
 
 destructor TtbBoard.Destroy;
@@ -264,6 +282,27 @@ begin
   Result := ContainsKey(AId);
   if Result then
     ATask := Self[AID];
+end;
+
+{ TtbLaneList }
+
+procedure TtbLaneList.Notify(const Value: TtbLane; Action: TCollectionNotification);
+const
+  done = [TCollectionNotification.cnAdded, TCollectionNotification.cnExtracted,
+    TCollectionNotification.cnRemoved];
+begin
+  inherited;
+  if Action in done then
+    SetModified(True);
+end;
+
+procedure TtbLaneList.SetModified(const Value: Boolean);
+begin
+  if FModified <> Value then
+  begin
+    FModified := Value;
+    FOwner.ChildChanged(Self);
+  end;
 end;
 
 end.

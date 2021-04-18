@@ -7,6 +7,10 @@ uses Classes,
 
 type
   TtbFileStorage = class(TInterfacedObject, ItbStorage)
+  private class var
+    FInstance: TtbFileStorage;
+  public
+    class function GetInstance: TtbFileStorage;
   private
     FLines: TStrings;
     FFolder: String;
@@ -21,6 +25,9 @@ type
     procedure PutDomain(ASource: TtbDomain);
     function GetBoard(ATarget: TtbBoard; const ABoardName: String = ''): Boolean;
     procedure PutBoard(ASource: TtbBoard; const ABoardName: String = '');
+    procedure PutTask(ATask: TtbTask);
+    {}
+    property Folder: String read FFolder;
   end;
 
 implementation
@@ -35,6 +42,9 @@ const
 
 constructor TtbFileStorage.Create;
 begin
+  if FInstance = nil then
+    FInstance := Self;
+
   FLines := TStringList.Create;
 
   FFolder := IncludeTrailingPathDelimiter(TPath.GetHomePath) + dirHome;
@@ -44,6 +54,8 @@ end;
 destructor TtbFileStorage.Destroy;
 begin
   FLines.Free;
+  if FInstance = Self then
+    FInstance := nil;
   inherited;
 end;
 
@@ -101,6 +113,11 @@ begin
   FLines.Clear;
 end;
 
+class function TtbFileStorage.GetInstance: TtbFileStorage;
+begin
+  Result := FInstance;
+end;
+
 procedure TtbFileStorage.PutDomain(ASource: TtbDomain);
 begin
   if not TDirectory.Exists(FFolder) then
@@ -109,6 +126,11 @@ begin
   FLines.Clear;
   FLines.Text := ObjectToJson(ASource);
   FLines.SaveToFile(FFileNameFull);
+end;
+
+procedure TtbFileStorage.PutTask(ATask: TtbTask);
+begin
+
 end;
 
 end.

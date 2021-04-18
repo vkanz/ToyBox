@@ -10,6 +10,7 @@ type
     procedure PutDomain(ASource: TtbDomain);
     function GetBoard(ATarget: TtbBoard; const ABordName: String = ''): Boolean;
     procedure PutBoard(ATarget: TtbBoard; const ABordName: String = '');
+    procedure PutTask(ATask: TtbTask);
   end;
 
 type
@@ -21,6 +22,7 @@ type
     procedure PutDomain(ASource: TtbDomain);
     function GetBoard(ATarget: TtbBoard; const ABoardName: String = ''): Boolean;
     procedure PutBoard(ATarget: TtbBoard; const ABoardName: String = '');
+    procedure PutTask(ATask: TtbTask);
 
     constructor Create(AStorage: ItbStorage);
   end;
@@ -52,6 +54,11 @@ end;
 procedure TtbRepo.PutDomain(ASource: TtbDomain);
 begin
   FStorage.PutDomain(ASource);
+end;
+
+procedure TtbRepo.PutTask(ATask: TtbTask);
+begin
+  FStorage.PutTask(ATask);
 end;
 
 end.
