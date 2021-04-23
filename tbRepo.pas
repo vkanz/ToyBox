@@ -43,7 +43,9 @@ end;
 
 function TtbRepo.GetDomain(ATarget: TtbDomain): Boolean;
 begin
+  ATarget.BeginUpdate;
   Result := FStorage.GetDomain(ATarget);
+  ATarget.EndUpdate;
 end;
 
 procedure TtbRepo.PutBoard(ATarget: TtbBoard; const ABoardName: String);

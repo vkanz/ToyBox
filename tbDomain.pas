@@ -2,7 +2,8 @@ unit tbDomain;
 
 interface
 
-uses Generics.Collections;
+uses Generics.Collections,
+  tbEvents;
 
 {$SCOPEDENUMS ON}
 
@@ -51,6 +52,14 @@ type
 
 type
   TtbTaskList = class(TObjectList<TtbTask>)
+  private
+    FUpdateCount: Integer;
+  protected
+    procedure Notify(const Value: TtbTask; Action: TCollectionNotification); override;
+    procedure BeginUpdate;
+    procedure EndUpdate;
+  public
+    procedure DeleteByID(AID: Integer);
   end;
 
 type
@@ -75,6 +84,8 @@ type
     function GetNextTaskID: Integer;
     function FindTaskById(AID: Integer; out ATask: TtbTask): Boolean;
     function GetAllTasksID: String;
+    procedure BeginUpdate;
+    procedure EndUpdate;
     {}
     property Tasks: TtbTaskList read FTasks write FTasks;
     property Persons: TtbPersonList read FPersons write FPersons;
@@ -94,6 +105,8 @@ type
     function GetTaskId(AIndex: Integer): Integer;
     function AddTaskID(ATaskID: Integer): Integer;
     procedure RemoveTaskID(ATaskID: Integer);
+    [Subscribe]
+    procedure OnTaskChange(AEvent: ITaskChangeEvent);
     property Title: String read FTitle write FTitle;
     property TaskIdList: String read GetTaskIdList write SetTaskIdList;
   end;
@@ -129,9 +142,16 @@ type
 
 implementation
 
-uses SysUtils;
+uses SysUtils, Math,
+  EventBus,
+  tbEvents;
 
 { TtbDomain }
+
+procedure TtbDomain.BeginUpdate;
+begin
+  FTasks.BeginUpdate;
+end;
 
 constructor TtbDomain.Create;
 begin
@@ -144,6 +164,14 @@ begin
   FPersons.Free;
   FTasks.Free;
   inherited;
+end;
+
+procedure TtbDomain.EndUpdate;
+begin
+  FLastTaskID := 0;
+  for var Enum in FTasks do
+    FLastTaskID := Max(Enum.ID, FLastTaskID);
+  FTasks.BeginUpdate;
 end;
 
 function TtbDomain.FindTaskById(AID: Integer; out ATask: TtbTask): Boolean;
@@ -228,6 +256,7 @@ end;
 function TtbLane.AddTaskID(ATaskID: Integer): Integer;
 begin
   Result := FTaskIDs.Add(ATaskID);
+  GlobalEventBus.Post(GetLaneChangeEvent(Self));
 end;
 
 constructor TtbLane.Create;
@@ -259,6 +288,12 @@ begin
   for Enum in FTaskIds do
     Result := Result + Enum.ToString + ',';
   Result := Copy(Result, 1, Length(Result) - 1);
+end;
+
+procedure TtbLane.OnTaskChange(AEvent: ITaskChangeEvent);
+begin
+  if FTaskIDs.IndexOf(AEvent.TaskID) then
+    RemoveTaskID(AEvent.TaskID);
 end;
 
 procedure TtbLane.RemoveTaskID(ATaskID: Integer);
@@ -303,6 +338,35 @@ begin
     FModified := Value;
     FOwner.ChildChanged(Self);
   end;
+end;
+
+{ TtbTaskList }
+
+procedure TtbTaskList.BeginUpdate;
+begin
+  FUpdateCount := FUpdateCount + 1;
+end;
+
+procedure TtbTaskList.DeleteByID(AID: Integer);
+begin
+  for var Enum in Self do
+    if Enum.ID = AID then
+    begin
+      Remove(Enum);
+      Break;
+    end;
+end;
+
+procedure TtbTaskList.EndUpdate;
+begin
+  FUpdateCount := FUpdateCount + 1;
+end;
+
+procedure TtbTaskList.Notify(const Value: TtbTask; Action: TCollectionNotification);
+begin
+  inherited;
+  if Action = TCollectionNotification.cnRemoved then
+    GlobalEventBus.Post(GetTaskChangeEvent(Value.ID, TTaskChangeKind.Deleted)
 end;
 
 end.

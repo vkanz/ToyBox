@@ -32,6 +32,7 @@ type
     procedure DashboardButtonClick(Sender: TObject);
     procedure lblTitleClick(Sender: TObject);
     procedure TitleBarPanelCustomButtons0Click(Sender: TObject);
+    procedure TitleBarPanelCustomButtons0Paint(Sender: TObject);
   private
     FDomain: TtbDomain;
     FRepo: TtbRepo;
@@ -50,8 +51,9 @@ implementation
 {$R *.dfm}
 
 uses
-  ShellApi,
+  ShellApi, Math,
   VersionUtils,
+  TitleUtils,
   tbTest,
   tbUtils,
   tbFileStorage,
@@ -149,6 +151,20 @@ end;
 procedure TFormMain.TitleBarPanelCustomButtons0Click(Sender: TObject);
 begin
   tbUtils.ShowFile(TtbFileStorage.GetInstance.Folder);
+end;
+
+procedure TFormMain.TitleBarPanelCustomButtons0Paint(Sender: TObject);
+var
+  Button: TSystemTitlebarButton;
+begin
+  if Sender is TSystemTitlebarButton then
+  begin
+    Button := TSystemTitlebarButton(Sender);
+    DrawSymbol(Button.Canvas, Button.ClientRect,
+      IfThen(Active, CustomTitleBar.ButtonForegroundColor, CustomTitleBar.ButtonInactiveForegroundColor),
+      IfThen(Active, CustomTitleBar.ButtonBackgroundColor, CustomTitleBar.ButtonInactiveBackgroundColor),
+      CurrentPPI, Screen.DefaultPixelsPerInch);
+  end;
 end;
 
 end.

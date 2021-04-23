@@ -54,6 +54,9 @@ object FrameBoard: TFrameBoard
     object ActionLaneAddTask1: TMenuItem
       Action = Action_LaneAddTask
     end
+    object Action11: TMenuItem
+      Caption = 'Action1'
+    end
   end
   object ActionList: TActionList
     Left = 400

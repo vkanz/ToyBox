@@ -860,6 +860,7 @@ object FormMain: TFormMain
         Hint = 'Options'
         Width = 32
         Visible = True
+        OnPaint = TitleBarPanelCustomButtons0Paint
         OnClick = TitleBarPanelCustomButtons0Click
       end>
     DesignSize = (

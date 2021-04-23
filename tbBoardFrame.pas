@@ -23,6 +23,7 @@ type
     Action_LaneSortAsc: TAction;
     Action_LaneSortDesc: TAction;
     ActionLaneAddTask1: TMenuItem;
+    Action11: TMenuItem;
     procedure Button2Click(Sender: TObject);
     procedure Action_LaneAddTaskExecute(Sender: TObject);
   private
@@ -33,7 +34,7 @@ type
   protected
     procedure CreateDefaultLanes;
     procedure PrepareGridPanel;
-    procedure HandleLaneDropItem(ASource, ATarget: TFrameLaneHeader);
+    procedure HandleLaneDropItem(ASource, ATarget: TFrameLane);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -41,7 +42,7 @@ type
     { ItbBoardPage }
     procedure Initialize;
     procedure Finalize;
-    procedure AddLane(ALane: TtbLane);
+    procedure AddLaneFrame(ALane: TtbLane);
     procedure BeginUpdate;
     procedure EndUpdate;
   end;
@@ -55,12 +56,12 @@ begin
   //
 end;
 
-procedure TFrameBoard.AddLane(ALane: TtbLane);
+procedure TFrameBoard.AddLaneFrame(ALane: TtbLane);
 var
-  Frm: TFrameLaneHeader;
+  Frm: TFrameLane;
 begin
   GridPanel.ColumnCollection.Add.SizeStyle := ssPercent;
-  Frm := TFrameLaneHeader.Create(Self);
+  Frm := TFrameLane.Create(Self);
   Frm.Parent := GridPanel;
   Frm.Align := alClient;
   Frm.SetLane(ALane);
@@ -147,9 +148,17 @@ begin
   if FBoard.Lanes.Count = 0 then
     CreateDefaultLanes;
 
-  FBoardAdapter.BoardPage := Self;
-  FBoardAdapter.Board := FBoard;
-  FBoardAdapter.Draw;
+  BeginUpdate;
+  try
+    for var Lane in FBoard.Lanes do
+      AddLaneFrame(Lane);
+  finally
+    EndUpdate;
+  end;
+
+//  FBoardAdapter.BoardPage := Self;
+//  FBoardAdapter.Board := FBoard;
+//  FBoardAdapter.Draw;
 end;
 
 procedure TFrameBoard.PrepareGridPanel;
@@ -161,7 +170,7 @@ begin
   GridPanel.RowCollection.Add;
 end;
 
-procedure TFrameBoard.HandleLaneDropItem(ASource, ATarget: TFrameLaneHeader);
+procedure TFrameBoard.HandleLaneDropItem(ASource, ATarget: TFrameLane);
 var
   TaskID: Integer;
 begin

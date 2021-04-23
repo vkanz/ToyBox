@@ -11,10 +11,12 @@ uses
   SerializeUtils in 'SerializeUtils.pas',
   tbTest in 'tbTest.pas',
   tbBoard in 'tbBoard.pas',
-  tbLaneFrame in 'tbLaneFrame.pas' {FrameLaneHeader: TFrame},
+  tbLaneFrame in 'tbLaneFrame.pas' {FrameLane: TFrame},
   tbBoardIntf in 'tbBoardIntf.pas',
   VersionUtils in 'VersionUtils.pas',
-  tbUtils in 'tbUtils.pas';
+  tbUtils in 'tbUtils.pas',
+  TitleUtils in 'TitleUtils.pas',
+  tbEvents in 'tbEvents.pas';
 
 {$R *.res}
 

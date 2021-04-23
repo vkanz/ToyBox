@@ -1,4 +1,4 @@
-object FrameLaneHeader: TFrameLaneHeader
+object FrameLane: TFrameLane
   Left = 0
   Top = 0
   Width = 320
@@ -43,7 +43,7 @@ object FrameLaneHeader: TFrameLaneHeader
       Left = 3
       Top = 3
       Width = 290
-      Height = 18
+      Height = 21
       Align = alClient
       Alignment = taCenter
       Caption = '?'
@@ -66,7 +66,7 @@ object FrameLaneHeader: TFrameLaneHeader
       Flat = True
       OnClick = SpeedButtonClick
       ExplicitLeft = 299
-      ExplicitTop = 0
+      ExplicitTop = -4
     end
   end
   object ControlList: TControlList
@@ -86,5 +86,27 @@ object FrameLaneHeader: TFrameLaneHeader
     OnShowControl = ControlListShowControl
     OnMouseDown = ControlListMouseDown
     OnStartDrag = ControlListStartDrag
+  end
+  object ActionList1: TActionList
+    Left = 112
+    Top = 112
+    object Action_AddTask: TAction
+      Caption = 'Add Task'
+      OnExecute = Action_AddTaskExecute
+    end
+    object Action_DeleteTask: TAction
+      Caption = 'Delete Task'
+      OnExecute = Action_DeleteTaskExecute
+    end
+  end
+  object PopupMenu_Header: TPopupMenu
+    Left = 192
+    Top = 104
+    object AddTask1: TMenuItem
+      Action = Action_AddTask
+    end
+    object DeleteTask1: TMenuItem
+      Action = Action_DeleteTask
+    end
   end
 end

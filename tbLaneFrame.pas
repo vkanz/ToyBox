@@ -6,7 +6,8 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
   Vcl.Menus, System.Actions, Vcl.ActnList, Vcl.ControlList,
-  tbBoardIntf, tbDomain;
+  EventBus,
+  tbBoardIntf, tbDomain, tbEvents;
 
 type
   TtbLaneHeaderBuilder = class
@@ -14,22 +15,32 @@ type
   end;
 
 type
-  TFrameLaneHeader = class;
+  TFrameLane = class;
 
-  TLaneFrameProcedure = procedure(ASource, ATarget: TFrameLaneHeader) of object;
+  TLaneFrameProcedure = procedure(ASource, ATarget: TFrameLane) of object;
 
-  TFrameLaneHeader = class(TFrame, ItbLaneFrame)
+  TFrameLane = class(TFrame {, ItbLaneFrame!!})
     Label_Header: TLabel;
     GridPanel: TGridPanel;
     SpeedButton: TSpeedButton;
     ControlList: TControlList;
+    ActionList1: TActionList;
+    Action_AddTask: TAction;
+    PopupMenu_Header: TPopupMenu;
+    AddTask1: TMenuItem;
+    Action_DeleteTask: TAction;
+    DeleteTask1: TMenuItem;
     procedure SpeedButtonClick(Sender: TObject);
     procedure MenuItem_AddTaskClick(Sender: TObject);
     procedure ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
+    { Drag-n-drop }
     procedure ControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
     procedure ControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
+    {}
+    procedure Action_AddTaskExecute(Sender: TObject);
+    procedure Action_DeleteTaskExecute(Sender: TObject);
   private
     FTitle: TLabel;
     FText: TLabel;
@@ -42,6 +53,8 @@ type
     procedure Draw;
   public
     constructor Create(AOwner: TComponent); override;
+    [Subscribe]
+    procedure OnLaneChange(AEvent: ILaneChangeEvent);
     { ItbLaneFrame }
     procedure SetHeaderText(AValue: String);
     procedure SetLane(AValue: TtbLane);
@@ -60,11 +73,11 @@ uses Types, UITypes;
 
 type
   TTaskDragObject = class(TDragObjectEx)
-    LaneControls: TFrameLaneHeader;
-    constructor Create(ALaneControls: TFrameLaneHeader);
+    LaneControls: TFrameLane;
+    constructor Create(ALaneControls: TFrameLane);
   end;
 
-constructor TTaskDragObject.Create(ALaneControls: TFrameLaneHeader);
+constructor TTaskDragObject.Create(ALaneControls: TFrameLane);
 begin
   inherited Create;
   LaneControls := ALaneControls;
@@ -72,7 +85,7 @@ end;
 
 { TFrameLaneHeader }
 
-procedure TFrameLaneHeader.ControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X,
+procedure TFrameLane.ControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 begin
   { Manual BeginDrag }
@@ -81,13 +94,13 @@ begin
       TControlList(Sender).BeginDrag(False);
 end;
 
-procedure TFrameLaneHeader.ControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
+procedure TFrameLane.ControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
 begin
   { Creation of DragObject }
   DragObject := TTaskDragObject.Create(Self);
 end;
 
-procedure TFrameLaneHeader.ControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
+procedure TFrameLane.ControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
   var Accept: Boolean);
 begin
   { Accepting Drag Object }
@@ -95,7 +108,7 @@ begin
     and (Self <> TTaskDragObject(Source).LaneControls); //TODO Moving within one Lane
 end;
 
-procedure TFrameLaneHeader.ControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
+procedure TFrameLane.ControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
   { Dropping }
 //  var TargetIndex := Y div (ControlList.Height div
@@ -105,7 +118,22 @@ begin
       FOnMoveItem(TTaskDragObject(Source).LaneControls, Self);
 end;
 
-procedure TFrameLaneHeader.ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
+procedure TFrameLane.Action_AddTaskExecute(Sender: TObject);
+var
+  Id: Integer;
+begin
+  Id := FDomain.GetNextTaskID;
+  FDomain.Tasks.Add(TtbTask.Create(Id, 'Task' + Id.ToString, 'New task', '', 1));
+  Lane.AddTaskID(Id);
+  ControlList.Repaint;
+end;
+
+procedure TFrameLane.Action_DeleteTaskExecute(Sender: TObject);
+begin
+  FDomain.Tasks.DeleteById(FLane.GetTaskId(ControlList.ItemIndex));
+end;
+
+procedure TFrameLane.ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
 var
   TaskID: Integer;
   Task: TtbTask;
@@ -123,7 +151,7 @@ begin
   end;
 end;
 
-constructor TFrameLaneHeader.Create(AOwner: TComponent);
+constructor TFrameLane.Create(AOwner: TComponent);
 begin
   inherited;
   Name := ''; {TODO make unique name?}
@@ -131,35 +159,51 @@ begin
   Label_Header.Font.Style := Label_Header.Font.Style + [fsBold];
 end;
 
-procedure TFrameLaneHeader.Draw;
+procedure TFrameLane.Draw;
 begin
   ControlList.ItemCount := FLane.GetCount;
   //ControlList.Repaint;
   Label_Header.Caption := FLane.Title;
 end;
 
-procedure TFrameLaneHeader.MenuItem_AddTaskClick(Sender: TObject);
+procedure TFrameLane.MenuItem_AddTaskClick(Sender: TObject);
 begin
 //
 end;
 
-procedure TFrameLaneHeader.SetDomain(AValue: TtbDomain);
+procedure TFrameLane.OnLaneChange(AEvent: ILaneChangeEvent);
+begin
+  if AEvent.GetLane = FLane then
+    Draw;
+end;
+
+procedure TFrameLane.SetDomain(AValue: TtbDomain);
 begin
   FDomain := AValue;
 end;
 
-procedure TFrameLaneHeader.SetHeaderText(AValue: String);
+procedure TFrameLane.SetHeaderText(AValue: String);
 begin
   Label_Header.Caption := AValue;
 end;
 
-procedure TFrameLaneHeader.SetLane(AValue: TtbLane);
+procedure TFrameLane.SetLane(AValue: TtbLane);
 begin
-  FLane := AValue;
-  Draw;
+  if FLane <> AValue then
+  begin
+    if FLane <> nil then
+      GlobalEventBus.UnregisterForEvents(Self);
+
+    FLane := AValue;
+
+    if FLane <> nil then
+      GlobalEventBus.RegisterSubscriberForEvents(Self);
+
+    Draw;
+  end;
 end;
 
-procedure TFrameLaneHeader.SetupControlList;
+procedure TFrameLane.SetupControlList;
 begin
   with ControlList do
   begin
@@ -192,20 +236,19 @@ begin
   FText.Top := 40;
 end;
 
-procedure TFrameLaneHeader.SpeedButtonClick(Sender: TObject);
-//var
-//  Pnt: TPoint;
-//  Btn: TSpeedButton;
+procedure TFrameLane.SpeedButtonClick(Sender: TObject);
+var
+  Pnt: TPoint;
+  Btn: TSpeedButton;
 begin
-
-//  Btn := Sender as TSpeedButton;
-//  if FPopupMenu <> nil then
-//  begin
-//    { TODO Calculate menu width }
-//    Pnt := Point(Btn.Left - 100, Btn.Top + Btn.Height);
-//    Pnt := Btn.Parent.ClientToScreen(Pnt);
-//    FPopupMenu.Popup(Pnt.X, Pnt.Y)
-//  end;
+  Btn := Sender as TSpeedButton;
+  if PopupMenu_Header <> nil then
+  begin
+    { TODO Calculate menu width }
+    Pnt := Point(Btn.Left - 120, Btn.Top + Btn.Height);
+    Pnt := Btn.Parent.ClientToScreen(Pnt);
+    PopupMenu_Header.Popup(Pnt.X, Pnt.Y)
+  end;
 end;
 
 end.

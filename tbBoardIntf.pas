@@ -30,7 +30,7 @@ type
   ItbBoardPage = interface(ItbPage)
     procedure BeginUpdate;
     procedure EndUpdate;
-    procedure AddLane(ALane: TtbLane);
+    procedure AddLaneFrame(ALane: TtbLane);
   end;
 
 implementation

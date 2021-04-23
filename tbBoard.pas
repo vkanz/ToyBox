@@ -75,7 +75,7 @@ begin
   FBoardPage.BeginUpdate;
   try
     for var Lane in FBoard.Lanes do
-      FBoardPage.AddLane(Lane);
+      FBoardPage.AddLaneFrame(Lane);
   finally
     FBoardPage.EndUpdate;
   end;
