@@ -2,12 +2,10 @@ unit tbEvents;
 
 interface
 
-uses tbDomain;
-
 type
   ILaneChangeEvent = interface
   ['{0E12DAF4-DDD4-418D-8220-49F1E00C4ACC}']
-    function GetLane: TtbLane;
+    function GetLane: TObject;//TtbLane;
   end;
 
 type
@@ -20,7 +18,7 @@ type
     function GetChangeKind: TTaskChangeKind;
   end;
 
-function GetLaneChangeEvent(ALane: TtbLane): ILaneChangeEvent;
+function GetLaneChangeEvent(ALane: TObject{TtbLane}): ILaneChangeEvent;
 function GetTaskChangeEvent(ATaskID: Integer; AChangeKind: TTaskChangeKind): ITaskChangeEvent;
 
 implementation
@@ -28,9 +26,9 @@ implementation
 type
   TLaneChangeEvent = class(TInterfacedObject, ILaneChangeEvent)
   private
-    FLane: TtbLane;
+    FLane: TObject; //TtbLane;
   public
-    function GetLane: TtbLane;
+    function GetLane: TObject;//TtbLane;
   end;
 
 type
@@ -43,7 +41,7 @@ type
     function GetChangeKind: TTaskChangeKind;
   end;
 
-function GetLaneChangeEvent(ALane: TtbLane): ILaneChangeEvent;
+function GetLaneChangeEvent(ALane: TObject{TtbLane}): ILaneChangeEvent;
 var
   Obj: TLaneChangeEvent;
 begin
@@ -64,7 +62,7 @@ end;
 
 { TLaneChangeEvent }
 
-function TLaneChangeEvent.GetLane: TtbLane;
+function TLaneChangeEvent.GetLane: TObject;//TtbLane;
 begin
   Result := FLane;
 end;

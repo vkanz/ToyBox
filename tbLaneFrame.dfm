@@ -43,7 +43,7 @@ object FrameLane: TFrameLane
       Left = 3
       Top = 3
       Width = 290
-      Height = 21
+      Height = 18
       Align = alClient
       Alignment = taCenter
       Caption = '?'
@@ -75,6 +75,7 @@ object FrameLane: TFrameLane
     Width = 320
     Height = 216
     Align = alClient
+    ItemHeight = 60
     ItemMargins.Left = 0
     ItemMargins.Top = 0
     ItemMargins.Right = 0
@@ -86,8 +87,24 @@ object FrameLane: TFrameLane
     OnShowControl = ControlListShowControl
     OnMouseDown = ControlListMouseDown
     OnStartDrag = ControlListStartDrag
+    object Label_Title: TLabel
+      Left = 0
+      Top = 0
+      Width = 316
+      Height = 13
+      Align = alTop
+      Caption = '000'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      ExplicitWidth = 18
+    end
   end
-  object ActionList1: TActionList
+  object ActionList: TActionList
+    OnUpdate = ActionListUpdate
     Left = 112
     Top = 112
     object Action_AddTask: TAction
@@ -98,6 +115,10 @@ object FrameLane: TFrameLane
       Caption = 'Delete Task'
       OnExecute = Action_DeleteTaskExecute
     end
+    object Action_EditTask: TAction
+      Caption = 'Edit Task'
+      OnExecute = Action_EditTaskExecute
+    end
   end
   object PopupMenu_Header: TPopupMenu
     Left = 192
@@ -107,6 +128,9 @@ object FrameLane: TFrameLane
     end
     object DeleteTask1: TMenuItem
       Action = Action_DeleteTask
+    end
+    object EditTask1: TMenuItem
+      Action = Action_EditTask
     end
   end
 end

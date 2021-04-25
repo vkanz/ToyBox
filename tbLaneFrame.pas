@@ -1,5 +1,7 @@
 unit tbLaneFrame;
 
+{$DEFINE DZHTML}
+
 interface
 
 uses
@@ -7,7 +9,13 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
   Vcl.Menus, System.Actions, Vcl.ActnList, Vcl.ControlList,
   EventBus,
-  tbBoardIntf, tbDomain, tbEvents;
+{$IFDEF DZHTML}
+  Vcl.DzHTMLText,
+{$ENDIF}
+  tbBoardIntf,
+  tbDomain,
+  tbBoard,
+  tbEvents;
 
 type
   TtbLaneHeaderBuilder = class
@@ -17,19 +25,20 @@ type
 type
   TFrameLane = class;
 
-  TLaneFrameProcedure = procedure(ASource, ATarget: TFrameLane) of object;
-
-  TFrameLane = class(TFrame {, ItbLaneFrame!!})
+  TFrameLane = class(TFrame)
     Label_Header: TLabel;
     GridPanel: TGridPanel;
     SpeedButton: TSpeedButton;
     ControlList: TControlList;
-    ActionList1: TActionList;
+    ActionList: TActionList;
     Action_AddTask: TAction;
     PopupMenu_Header: TPopupMenu;
     AddTask1: TMenuItem;
     Action_DeleteTask: TAction;
     DeleteTask1: TMenuItem;
+    Action_EditTask: TAction;
+    EditTask1: TMenuItem;
+    Label_Title: TLabel;
     procedure SpeedButtonClick(Sender: TObject);
     procedure MenuItem_AddTaskClick(Sender: TObject);
     procedure ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
@@ -41,25 +50,32 @@ type
     {}
     procedure Action_AddTaskExecute(Sender: TObject);
     procedure Action_DeleteTaskExecute(Sender: TObject);
+    procedure ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
+    procedure Action_EditTaskExecute(Sender: TObject);
   private
     FTitle: TLabel;
-    FText: TLabel;
+    FText: TGraphicControl;
     {}
     FLane: TtbLane;
     FDomain: TtbDomain;
-    FOnMoveItem: TLaneFrameProcedure;
+    FTaskEditor: ItbTaskEditor;
   protected
     procedure SetupControlList;
     procedure Draw;
+    function GetCurrentTaskID: Integer;
+{$IFDEF DZHTML}
+    procedure HandleRetrieveImgRes(Sender: TObject; const ResourceName: string;
+      Picture: TPicture; var Handled: Boolean);
+    procedure HandleLinkClick(Sender: TObject; Link: TDHBaseLink;
+      var Handled: Boolean);
+{$ENDIF}
   public
-    constructor Create(AOwner: TComponent); override;
-    [Subscribe]
+    constructor Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor);
+    [Subscribe] { must be EventBus in uses }
     procedure OnLaneChange(AEvent: ILaneChangeEvent);
-    { ItbLaneFrame }
     procedure SetHeaderText(AValue: String);
     procedure SetLane(AValue: TtbLane);
     procedure SetDomain(AValue: TtbDomain);
-    property OnMoveItem: TLaneFrameProcedure read FOnMoveItem write FOnMoveItem;
     property Lane: TtbLane read FLane;
   end;
 
@@ -67,7 +83,18 @@ implementation
 
 {$R *.dfm}
 
-uses Types, UITypes;
+uses Types, UITypes,
+  tbStrings;
+
+procedure SetText(AControl: TGraphicControl; const AText: String);
+begin
+  if AControl is TLabel then
+    TLabel(AControl).Caption := AText
+{$IFDEF DZHTML}
+  else if AControl is TDzHTMLText then
+    TDzHTMLText(AControl).Lines.Text := AText;
+{$ENDIF}
+end;
 
 { TTaskDragObject }
 
@@ -97,7 +124,8 @@ end;
 procedure TFrameLane.ControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
 begin
   { Creation of DragObject }
-  DragObject := TTaskDragObject.Create(Self);
+  if ControlList.ItemIndex >= 0 then
+    DragObject := TTaskDragObject.Create(Self);
 end;
 
 procedure TFrameLane.ControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
@@ -109,13 +137,27 @@ begin
 end;
 
 procedure TFrameLane.ControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
+var
+  SourceFrame: TFrameLane;
+  TaskID: Integer;
 begin
   { Dropping }
-//  var TargetIndex := Y div (ControlList.Height div
-//    (TControlListAux(ControlList).LastDrawItemIndex - TControlListAux(ControlList).FirstDrawItemIndex));
   if IsDragObject(Source) and (Source is TTaskDragObject) then
-    if Assigned(FOnMoveItem) then {TODO calculate target ItemIndex}
-      FOnMoveItem(TTaskDragObject(Source).LaneControls, Self);
+  begin
+    SourceFrame := TTaskDragObject(Source).LaneControls;
+    TaskID := SourceFrame.GetCurrentTaskID;
+
+    SourceFrame.Lane.RemoveTaskID(TaskID);
+    Lane.AddTaskID(TaskID);
+  end;
+end;
+
+procedure TFrameLane.ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
+begin
+  if (Action = Action_DeleteTask) or (Action = Action_EditTask) then
+    TAction(Action).Enabled := ControlList.ItemIndex >= 0
+  ;
+  Handled := True;
 end;
 
 procedure TFrameLane.Action_AddTaskExecute(Sender: TObject);
@@ -123,14 +165,22 @@ var
   Id: Integer;
 begin
   Id := FDomain.GetNextTaskID;
-  FDomain.Tasks.Add(TtbTask.Create(Id, 'Task' + Id.ToString, 'New task', '', 1));
+  FDomain.Tasks.Add(TtbTask.CreateParams(Id, rsTask + Id.ToString, rsNewTask, '', 1));
   Lane.AddTaskID(Id);
   ControlList.Repaint;
 end;
 
 procedure TFrameLane.Action_DeleteTaskExecute(Sender: TObject);
 begin
-  FDomain.Tasks.DeleteById(FLane.GetTaskId(ControlList.ItemIndex));
+  FDomain.Tasks.DeleteById(GetCurrentTaskID);
+end;
+
+procedure TFrameLane.Action_EditTaskExecute(Sender: TObject);
+var
+  Task: TtbTask;
+begin
+  if FDomain.Tasks.TryGetByID(GetCurrentTaskID, Task) then
+    FTaskEditor.Edit(Task)
 end;
 
 procedure TFrameLane.ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
@@ -143,17 +193,22 @@ begin
     Assert(FDomain <> nil);
     Assert(Assigned(FLane));
     TaskID := FLane.GetTaskId(AIndex);
-    if FDomain.FindTaskById(TaskID, Task) then
+    if FDomain.Tasks.TryGetByID(TaskID, Task) then
       if AControl = FTitle then
-        FTitle.Caption := Task.Title
+        FTitle.Caption := '[' + Task.ID.ToString + ']  ' + Task.Title
       else if AControl = FText then
-        FText.Caption := Task.Text;
+        SetText(FText, Task.Text)
+      else
+    else
+      if AControl = FTitle then
+        FTitle.Caption := '<ID=' + TaskID.ToString + ' ' + rsIsNotFound;
   end;
 end;
 
-constructor TFrameLane.Create(AOwner: TComponent);
+constructor TFrameLane.Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor);
 begin
-  inherited;
+  inherited Create(AOwner);
+  FTaskEditor := ATaskEditor;
   Name := ''; {TODO make unique name?}
   SetupControlList;
   Label_Header.Font.Style := Label_Header.Font.Style + [fsBold];
@@ -164,6 +219,12 @@ begin
   ControlList.ItemCount := FLane.GetCount;
   //ControlList.Repaint;
   Label_Header.Caption := FLane.Title;
+end;
+
+function TFrameLane.GetCurrentTaskID: Integer;
+begin
+  Assert(ControlList.ItemIndex >= 0);
+  Result := FLane.GetTaskId(ControlList.ItemIndex);
 end;
 
 procedure TFrameLane.MenuItem_AddTaskClick(Sender: TObject);
@@ -216,25 +277,43 @@ begin
     ItemSelectionOptions.HotColorAlpha := 20;
     ItemSelectionOptions.SelectedColorAlpha := 30;
     ItemSelectionOptions.FocusedColorAlpha := 40;
-//    OnShowControl := LaneControls.HandleControlListShowControl;
-//    OnMouseDown := LaneControls.HandleControlListMouseDown;
-//    OnStartDrag := LaneControls.HandleControlListStartDrag;
-//    OnDragOver := LaneControls.HandleControlListDragOver;
-//    OnDragDrop := LaneControls.HandleControlListDragDrop;
   end;
 
-  {Title}
-  FTitle := TLabel.Create(Self);
-  ControlList.AddControlToItem(FTitle);
-  FTitle.Left := 6;
-  FTitle.Top := 6;
+  FTitle := Label_Title;
 
-  {Text}
-  FText := TLabel.Create(Self);
-  ControlList.AddControlToItem(FText);
-  FText.Left := 6;
-  FText.Top := 40;
+{$IFDEF DZHTML}
+    {see https://github.com/digao-dalpiaz/DzHTMLText#component-properties}
+    FText := TDzHTMLText.Create(Self);
+    ControlList.AddControlToItem(FText);
+    TDzHTMLText(FText).OnRetrieveImgRes := HandleRetrieveImgRes;
+    TDzHTMLText(FText).OnLinkClick := HandleLinkClick;
+    TDzHTMLText(FText).ParentColor := True;
+    FText.Align := alClient;
+{$ELSE}
+    FText := TLabel.Create(Self);
+    ControlList.AddControlToItem(FText);
+    FText.Align := alClient;
+    TLabel(FText).WordWrap := True;
+{$ENDIF}
+
+  ControlList.ItemHeight := 60;
 end;
+
+{$IFDEF DZHTML}
+procedure TFrameLane.HandleRetrieveImgRes(Sender: TObject; const ResourceName: string;
+  Picture: TPicture; var Handled: Boolean);
+begin
+  Picture.Assign(Application.Icon);
+  Handled := True;
+end;
+
+procedure TFrameLane.HandleLinkClick(Sender: TObject; Link: TDHBaseLink;
+  var Handled: Boolean);
+begin
+  //
+  Handled := True;
+end;
+{$ENDIF}
 
 procedure TFrameLane.SpeedButtonClick(Sender: TObject);
 var

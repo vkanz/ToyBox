@@ -9,7 +9,7 @@ uses
   tbDomain, tbBoardIntf, tbRepo, tbBoard, tbLaneFrame;
 
 type
-  TFrameBoard = class(TFrame, ItbBoardPage)
+  TFrameBoard = class(TFrame, ItbPage)
     Panel_Top: TPanel;
     GridPanel: TGridPanel;
     Button2: TButton;
@@ -29,16 +29,16 @@ type
   private
     FDomain: TtbDomain;
     FRepo: TtbRepo;
-    FBoardAdapter: TtbBoardAdapter;
     FBoard: TtbBoard;
+    FTaskEditor: ItbTaskEditor;
   protected
     procedure CreateDefaultLanes;
     procedure PrepareGridPanel;
-    procedure HandleLaneDropItem(ASource, ATarget: TFrameLane);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    class function CreatePage(AParent: TWinControl; ADomain: TtbDomain; ARepo: TtbRepo): ItbPage;
+    class function CreatePage(AParent: TWinControl; ADomain: TtbDomain; ARepo: TtbRepo;
+      ATaskEditor: ItbTaskEditor): ItbPage;
     { ItbBoardPage }
     procedure Initialize;
     procedure Finalize;
@@ -51,6 +51,8 @@ implementation
 
 {$R *.dfm}
 
+uses tbStrings;
+
 procedure TFrameBoard.Action_LaneAddTaskExecute(Sender: TObject);
 begin
   //
@@ -61,12 +63,11 @@ var
   Frm: TFrameLane;
 begin
   GridPanel.ColumnCollection.Add.SizeStyle := ssPercent;
-  Frm := TFrameLane.Create(Self);
+  Frm := TFrameLane.Create(Self, FTaskEditor);
   Frm.Parent := GridPanel;
   Frm.Align := alClient;
   Frm.SetLane(ALane);
   Frm.SetDomain(FDomain);
-  Frm.OnMoveItem := HandleLaneDropItem;
 end;
 
 procedure TFrameBoard.BeginUpdate;
@@ -77,10 +78,8 @@ end;
 procedure TFrameBoard.Button2Click(Sender: TObject);
 begin
   var Lane := TtbLane.Create;
-  Lane.Title := 'Done';
+  Lane.Title := rsLaneDone;
   FBoard.Lanes.Add(Lane);
-
-  FBoardAdapter.Draw;
 end;
 
 constructor TFrameBoard.Create(AOwner: TComponent);
@@ -88,7 +87,6 @@ begin
   inherited;
   PrepareGridPanel;
   FBoard := TtbBoard.Create;
-  FBoardAdapter := TtbBoardAdapter.Create(Self);
 end;
 
 procedure TFrameBoard.CreateDefaultLanes;
@@ -109,7 +107,8 @@ begin
 //  FBoard.Lanes.Add(Lane);
 end;
 
-class function TFrameBoard.CreatePage(AParent: TWinControl; ADomain: TtbDomain; ARepo: TtbRepo): ItbPage;
+class function TFrameBoard.CreatePage(AParent: TWinControl; ADomain: TtbDomain; ARepo: TtbRepo;
+  ATaskEditor: ItbTaskEditor): ItbPage;
 var
   Frm: TFrameBoard;
 begin
@@ -118,7 +117,8 @@ begin
   Frm.Align := alClient;
   Frm.FRepo := ARepo;
   Frm.FDomain := ADomain;
-  Result := Frm as ItbBoardPage;
+  Frm.FTaskEditor := ATaskEditor;
+  Result := Frm as ItbPage;
 end;
 
 destructor TFrameBoard.Destroy;
@@ -155,10 +155,6 @@ begin
   finally
     EndUpdate;
   end;
-
-//  FBoardAdapter.BoardPage := Self;
-//  FBoardAdapter.Board := FBoard;
-//  FBoardAdapter.Draw;
 end;
 
 procedure TFrameBoard.PrepareGridPanel;
@@ -168,29 +164,6 @@ begin
 
   GridPanel.ExpandStyle := emAddColumns;
   GridPanel.RowCollection.Add;
-end;
-
-procedure TFrameBoard.HandleLaneDropItem(ASource, ATarget: TFrameLane);
-var
-  TaskID: Integer;
-begin
-  Assert(FDomain <> nil);
-  TaskID := ASource.Lane.GetTaskId(ASource.ControlList.ItemIndex);
-
-  if ASource <> ATarget then
-  begin
-    ASource.Lane.RemoveTaskID(TaskID);
-    ASource.ControlList.ItemCount := ASource.ControlList.ItemCount - 1;
-    ASource.ControlList.Repaint;
-
-    ATarget.Lane.AddTaskID(TaskID);
-    ATarget.ControlList.ItemCount := ATarget.ControlList.ItemCount + 1;
-    ATarget.ControlList.Repaint;
-  end
-  else
-  begin
-
-  end;
 end;
 
 end.

@@ -2,13 +2,17 @@ program ToyBox;
 
 uses
   Vcl.Forms,
+  Vcl.Themes,
+  Vcl.Styles,
   tbMainForm in 'tbMainForm.pas' {FormMain},
-  tbData in 'tbData.pas' {TeamWorkData: TDataModule},
   tbBoardFrame in 'tbBoardFrame.pas' {FrameBoard: TFrame},
   tbDomain in 'tbDomain.pas',
   tbRepo in 'tbRepo.pas',
   tbFileStorage in 'tbFileStorage.pas',
-  SerializeUtils in 'SerializeUtils.pas',
+  SerializeUtils in 'SerializeUtils.pas' {,
+  tbTest in 'tbTest.pas',
+  tbBoard in 'tbBoard.pas',
+  tbLaneFrame in 'tbLaneFrame.pas' {FrameLane: TFrame},
   tbTest in 'tbTest.pas',
   tbBoard in 'tbBoard.pas',
   tbLaneFrame in 'tbLaneFrame.pas' {FrameLane: TFrame},
@@ -16,7 +20,10 @@ uses
   VersionUtils in 'VersionUtils.pas',
   tbUtils in 'tbUtils.pas',
   TitleUtils in 'TitleUtils.pas',
-  tbEvents in 'tbEvents.pas';
+  tbEvents in 'tbEvents.pas',
+  tbTaskForm in 'tbTaskForm.pas' {FormEditTask},
+  tbStrings in 'tbStrings.pas',
+  Vcl.DzHTMLText in '..\3d-party\Vcl.DzHTMLText.pas';
 
 {$R *.res}
 
@@ -27,7 +34,7 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.Title := 'ToyBox';
+  //TStyleManager.TrySetStyle('Windows10 SlateGray');
   Application.CreateForm(TFormMain, FormMain);
-  Application.CreateForm(TTeamWorkData, TeamWorkData);
   Application.Run;
 end.

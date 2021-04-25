@@ -1,6 +1,7 @@
 object FormMain: TFormMain
   Left = 0
   Top = 0
+  ActiveControl = DashboardButton
   Caption = 'FormMain'
   ClientHeight = 397
   ClientWidth = 618
@@ -40,6 +41,7 @@ object FormMain: TFormMain
     Top = 30
     Width = 200
     Height = 367
+    AnimationStep = 40
     CloseStyle = svcCompact
     FullRepaint = False
     OpenedWidth = 200

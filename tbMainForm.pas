@@ -1,3 +1,12 @@
+// *************************************************************************** }
+//
+// ToyBox task management tool
+//
+// Copyright (c) 2021-2020
+//
+// https://github.com/vkanz/toybox
+//
+// ***************************************************************************
 unit tbMainForm;
 
 interface
@@ -5,9 +14,13 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ControlList, Vcl.VirtualImage,
-  Vcl.WinXCtrls, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList,
+  Vcl.WinXCtrls, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList, Vcl.TitleBarCtrls,
   Vcl.BaseImageCollection, Vcl.ImageCollection, Vcl.Imaging.pngimage,
-  tbDomain, tbBoard, tbRepo, tbBoardIntf, Vcl.TitleBarCtrls;
+  tbDomain,
+  tbBoard,
+  tbRepo,
+  tbEvents,
+  tbBoardIntf;
 
 type
   TFormMain = class(TForm)
@@ -52,12 +65,15 @@ implementation
 
 uses
   ShellApi, Math,
+  EventBus,
   VersionUtils,
   TitleUtils,
+  tbStrings,
   tbTest,
   tbUtils,
   tbFileStorage,
-  tbBoardFrame;
+  tbBoardFrame,
+  tbTaskForm;
 
 { Utils }
 procedure ShowWebPage(const AUrl: String);
@@ -70,7 +86,8 @@ begin
   if Assigned(FCurrentPage) then
     FCurrentPage.Finalize;
 
-  FCurrentPage := TFrameBoard.CreatePage(Panel_PageContainer, FDomain, FRepo);
+  FCurrentPage := TFrameBoard.CreatePage(Panel_PageContainer, FDomain, FRepo,
+    TTaskEditor.Create);
   FCurrentPage.Initialize;
 end;
 
@@ -109,13 +126,13 @@ begin
   with TTaskDialog.Create(Self) do
     try
       CustomMainIcon := Application.Icon;
-      Caption := 'About ToyBox';
+      Caption := rsAboutToyBox;
       Title := TProgramVersionInfo.FileDescription; // + #13#10 +
-      Text := 'Copyrights: © ' + TProgramVersionInfo.LegalCopyright + #13#10 +
+      Text := '© ' + TProgramVersionInfo.LegalCopyright + #13#10 +
         // ' <a href="https://systemt.ru/">systemt.ru</a>' + #13#10 +
-        //'Дата выпуска: ' + VersionUtils.DateOfRelease + #13#10 +
-        'Program version: ' + TProgramVersionInfo.ProductVersion + #13#10 +
-        'File version: ' + TProgramVersionInfo.FileVersion + #13#10 +
+        //'Date: ' + VersionUtils.DateOfRelease + #13#10 +
+        rsProgramVersion + TProgramVersionInfo.ProductVersion + #13#10 +
+        rsFileVersion + TProgramVersionInfo.FileVersion + #13#10 +
         '<a href="https://www.google.com/search?q=toybox">Home page</a>';
       CommonButtons := [tcbClose];
       Flags := [tfEnableHyperlinks, tfPositionRelativeToWindow, tfUseHiconMain];

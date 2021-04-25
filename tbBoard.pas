@@ -1,38 +1,60 @@
-// *************************************************************************** }
-//
-// ToyBox task management tool
-//
-// Copyright (c) 2021-2020
-//
-// https://github.com/vkanz/toybox
-//
-// ***************************************************************************
-
 unit tbBoard;
 
 interface
 
-uses Vcl.ExtCtrls, Classes, Generics.Collections, Vcl.ControlList, Vcl.StdCtrls, Controls, Menus,
-  tbDomain, tbBoardIntf;
+uses Vcl.ExtCtrls, Classes, Generics.Collections,
+  EventBus{Preventing W1074 Unknown custom attributes},
+  tbEvents;
 
 type
-  TtbBoardAdapter = class(TComponent)
+  TtbLane = class
   private
-    FBoard: TtbBoard;
-    FPopupMenu: TPopupMenu;
-    FBoardPage: ItbBoardPage;
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure PrepareGrid;
+    FTitle: String;
+    FTaskIDs: TList<Integer>;
+    procedure SetTaskIdList(const Value: String);
+    function GetTaskIdList: String;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create;
     destructor Destroy; override;
-    procedure Draw;
-    {}
-    property Board: TtbBoard read FBoard write FBoard;
-    property BoardPage: ItbBoardPage read FBoardPage write FBoardPage;
-  published
-    property PopupMenu: TPopupMenu read FPopupMenu write FPopupMenu;
+    function GetCount: Integer;
+    function GetTaskId(AIndex: Integer): Integer;
+    function AddTaskID(ATaskID: Integer): Integer;
+    procedure RemoveTaskID(ATaskID: Integer);
+    property Title: String read FTitle write FTitle;
+    property TaskIdList: String read GetTaskIdList write SetTaskIdList;
+  end;
+
+type
+  TtbBoard = class;
+
+  TtbLaneList = class(TObjectList<TtbLane>)
+  private
+    FOwner: TtbBoard;
+    FModified: Boolean;
+    procedure SetModified(const Value: Boolean);
+  protected
+    procedure Notify(const Value: TtbLane; Action: TCollectionNotification); override;
+  public
+    property Modified: Boolean read FModified write SetModified;
+  end;
+
+  TtbBoard = class
+  private
+    FLanes: TtbLaneList;
+    FModified: boolean;
+  protected
+    procedure ChildChanged(ASender: TObject);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    [Subscribe]
+    procedure OnTaskChange(AEvent: ITaskChangeEvent);
+    { }
+    procedure Clear;
+    procedure BeforeLoad;
+    procedure AfterLoad;
+    { }
+    property Lanes: TtbLaneList read FLanes;
   end;
 
 implementation
@@ -41,43 +63,126 @@ uses Vcl.Graphics, System.UITypes, SysUtils,
 {$IFDEF DEBUG}
   Dialogs,
 {$ENDIF}
+  tbDomain,
   tbLaneFrame;
 
-{ TtbBoardAdapter }
+{ TtbLane }
 
-constructor TtbBoardAdapter.Create(AOwner: TComponent);
+function TtbLane.AddTaskID(ATaskID: Integer): Integer;
+begin
+  Result := FTaskIDs.Add(ATaskID);
+  GlobalEventBus.Post(GetLaneChangeEvent(Self));
+end;
+
+constructor TtbLane.Create;
+begin
+  FTaskIDs := TList<Integer>.Create;
+end;
+
+destructor TtbLane.Destroy;
+begin
+  FTaskIDs.Free;
+  inherited;
+end;
+
+function TtbLane.GetCount: Integer;
+begin
+  Result := FTaskIDs.Count;
+end;
+
+function TtbLane.GetTaskId(AIndex: Integer): Integer;
+begin
+  if (0 <= AIndex) and (AIndex < FTaskIds.Count) then
+    Result := FTaskIds[AIndex]
+  else
+    Result := newTaskId;
+end;
+
+function TtbLane.GetTaskIdList: String;
+var
+  Enum: Integer;
+begin
+  Result := '';
+  for Enum in FTaskIds do
+    Result := Result + Enum.ToString + ',';
+  Result := Copy(Result, 1, Length(Result) - 1);
+end;
+
+procedure TtbLane.RemoveTaskID(ATaskID: Integer);
+begin
+  FTaskIDs.Remove(ATaskID);
+  GlobalEventBus.Post(GetLaneChangeEvent(Self));
+end;
+
+procedure TtbLane.SetTaskIdList(const Value: String);
+var
+  I: Integer;
+begin
+  var IDs := Value.Split([',']);
+  for I := 0 to Length(IDs) - 1 do
+    FTaskIDs.Add(StrToIntDef(IDs[I], 0));
+end;
+
+{ TtbBoard }
+
+procedure TtbBoard.AfterLoad;
+begin
+  GlobalEventBus.RegisterSubscriberForEvents(Self);
+end;
+
+procedure TtbBoard.BeforeLoad;
+begin
+  GlobalEventBus.UnregisterForEvents(Self);
+end;
+
+procedure TtbBoard.ChildChanged(ASender: TObject);
+begin
+
+end;
+
+procedure TtbBoard.Clear;
+begin
+  FLanes.Clear;
+end;
+
+constructor TtbBoard.Create;
+begin
+  FLanes := TtbLaneList.Create;
+  FLanes.FOwner := Self;
+end;
+
+destructor TtbBoard.Destroy;
+begin
+  FLanes.Free;
+  inherited;
+end;
+
+procedure TtbBoard.OnTaskChange(AEvent: ITaskChangeEvent);
+begin
+  if AEvent.GetChangeKind = TTaskChangeKind.Deleted then
+    for var Enum in FLanes do
+      if (Enum.FTaskIDs.IndexOf(AEvent.GetTaskID) >= 0) then
+        Enum.RemoveTaskID(AEvent.GetTaskID);
+end;
+
+{ TtbLaneList }
+
+procedure TtbLaneList.Notify(const Value: TtbLane; Action: TCollectionNotification);
+const
+  done = [TCollectionNotification.cnAdded, TCollectionNotification.cnExtracted,
+    TCollectionNotification.cnRemoved];
 begin
   inherited;
-
+  if Action in done then
+    SetModified(True);
 end;
 
-destructor TtbBoardAdapter.Destroy;
+procedure TtbLaneList.SetModified(const Value: Boolean);
 begin
-
-  inherited;
-end;
-
-procedure TtbBoardAdapter.Draw;
-begin
-  PrepareGrid;
-end;
-
-procedure TtbBoardAdapter.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited Notification(AComponent, Operation);
-
-end;
-
-procedure TtbBoardAdapter.PrepareGrid;
-begin
-  Assert(FBoard <> nil);
-
-  FBoardPage.BeginUpdate;
-  try
-    for var Lane in FBoard.Lanes do
-      FBoardPage.AddLaneFrame(Lane);
-  finally
-    FBoardPage.EndUpdate;
+  if FModified <> Value then
+  begin
+    FModified := Value;
+    FOwner.ChildChanged(Self);
   end;
 end;
 

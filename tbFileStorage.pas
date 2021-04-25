@@ -2,7 +2,7 @@ unit tbFileStorage;
 
 interface
 
-uses Classes,
+uses tbboard, Classes,
   tbRepo, tbDomain;
 
 type

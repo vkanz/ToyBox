@@ -2,7 +2,7 @@ unit tbRepo;
 
 interface
 
-uses tbDomain;
+uses tbboard, tbDomain;
 
 type
   ItbStorage = interface
@@ -29,6 +29,8 @@ type
 
 implementation
 
+uses tbBoardIntf;
+
 { TtbRepo }
 
 constructor TtbRepo.Create(AStorage: ItbStorage);
@@ -38,7 +40,12 @@ end;
 
 function TtbRepo.GetBoard(ATarget: TtbBoard; const ABoardName: String): Boolean;
 begin
-  Result := FStorage.GetBoard(ATarget, ABoardName)
+  ATarget.BeforeLoad;
+  try
+    Result := FStorage.GetBoard(ATarget, ABoardName)
+  finally
+    ATarget.AfterLoad;
+  end;
 end;
 
 function TtbRepo.GetDomain(ATarget: TtbDomain): Boolean;

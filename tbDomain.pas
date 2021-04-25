@@ -2,10 +2,13 @@ unit tbDomain;
 
 interface
 
-uses Generics.Collections,
+uses Generics.Collections, Classes,
   tbEvents;
 
 {$SCOPEDENUMS ON}
+
+const
+  newTaskId = 0;
 
 type
   TtbPerson = class
@@ -30,6 +33,22 @@ type
   );
 
 type
+  TcbCheckItem = class
+  public
+    Checked: Boolean;
+    Caption: String;
+  end;
+
+type
+  TtbCheckList = class
+  private
+    FTitle: String;
+  public
+    property Title: String read FTitle write FTitle;
+
+  end;
+
+type
   TtbTask = class
   private
     FTitle: String;
@@ -40,7 +59,10 @@ type
     FAssignedTo: Integer;
     FStatus: TtbTaskStatus;
   public
-    constructor Create(AID: Integer; const ATitle, AText, ATags: String; ACreatedBy: Integer);
+    constructor CreateParams(AID: Integer; const ATitle, AText, ATags: String; ACreatedBy: Integer);
+    function Clone: TtbTask;
+    procedure AssignTo(Dest: TtbTask);
+    {}
     property ID: Integer read FID write FID;
     property Title: String read FTitle write FTitle;
     property Text: String read FText write FText;
@@ -54,12 +76,17 @@ type
   TtbTaskList = class(TObjectList<TtbTask>)
   private
     FUpdateCount: Integer;
+    FDictionary: TObjectDictionary<Integer, TtbTask>;
   protected
     procedure Notify(const Value: TtbTask; Action: TCollectionNotification); override;
     procedure BeginUpdate;
     procedure EndUpdate;
+    procedure RebuildDictionary;
   public
+    constructor Create;
+    destructor Destroy; override;
     procedure DeleteByID(AID: Integer);
+    function TryGetByID(AID: Integer; out ATask: TtbTask): Boolean;
   end;
 
 type
@@ -91,60 +118,10 @@ type
     property Persons: TtbPersonList read FPersons write FPersons;
   end;
 
-type
-  TtbLane = class
-  private
-    FTitle: String;
-    FTaskIDs: TList<Integer>;
-    procedure SetTaskIdList(const Value: String);
-    function GetTaskIdList: String;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    function GetCount: Integer;
-    function GetTaskId(AIndex: Integer): Integer;
-    function AddTaskID(ATaskID: Integer): Integer;
-    procedure RemoveTaskID(ATaskID: Integer);
-    [Subscribe]
-    procedure OnTaskChange(AEvent: ITaskChangeEvent);
-    property Title: String read FTitle write FTitle;
-    property TaskIdList: String read GetTaskIdList write SetTaskIdList;
-  end;
-
-type
-  TtbBoard = class;
-
-  TtbLaneList = class(TObjectList<TtbLane>)
-  private
-    FOwner: TtbBoard;
-    FModified: Boolean;
-    procedure SetModified(const Value: Boolean);
-  protected
-    procedure Notify(const Value: TtbLane; Action: TCollectionNotification); override;
-  public
-    property Modified: Boolean read FModified write SetModified;
-  end;
-
-  TtbBoard = class
-  private
-    FLanes: TtbLaneList;
-    FModified: Boolean;
-  protected
-    procedure ChildChanged(ASender: TObject);
-  public
-    constructor Create;
-    destructor Destroy; override;
-    {}
-    procedure Clear;
-    {}
-    property Lanes: TtbLaneList read FLanes;
-  end;
-
 implementation
 
 uses SysUtils, Math,
-  EventBus,
-  tbEvents;
+  EventBus;
 
 { TtbDomain }
 
@@ -171,19 +148,12 @@ begin
   FLastTaskID := 0;
   for var Enum in FTasks do
     FLastTaskID := Max(Enum.ID, FLastTaskID);
-  FTasks.BeginUpdate;
+  FTasks.EndUpdate;
 end;
 
 function TtbDomain.FindTaskById(AID: Integer; out ATask: TtbTask): Boolean;
 begin
-  ATask := nil;
-  for var Task in FTasks do
-    if Task.ID = AID then
-    begin
-      ATask := Task;
-      Break;
-    end;
-  Result := ATask <> nil;
+  Result := FTasks.TryGetByID(AID, ATask);
 end;
 
 function TtbDomain.GetAllTasksID: String;
@@ -217,7 +187,24 @@ end;
 
 { TtbTask }
 
-constructor TtbTask.Create(AID: Integer; const ATitle, AText, ATags: String; ACreatedBy: Integer);
+procedure TtbTask.AssignTo(Dest: TtbTask);
+begin
+  Dest.FTitle := FTitle;
+  Dest.FID := FID;
+  Dest.FText := FText;
+  Dest.FTags := FTags;
+  Dest.FCreatedBy := FCreatedBy;
+  Dest.FAssignedTo := FAssignedTo;
+  Dest.FStatus := FStatus;
+end;
+
+function TtbTask.Clone: TtbTask;
+begin
+  Result := TtbTask.Create;
+  AssignTo(Result);
+end;
+
+constructor TtbTask.CreateParams(AID: Integer; const ATitle, AText, ATags: String; ACreatedBy: Integer);
 begin
   FID := AID;
   FTitle := ATitle;
@@ -227,117 +214,11 @@ begin
   FStatus := TtbTaskStatus.Active;
 end;
 
-{ TtbBoard }
-
-procedure TtbBoard.ChildChanged(ASender: TObject);
-begin
-
-end;
-
-procedure TtbBoard.Clear;
-begin
-  FLanes.Clear;
-end;
-
-constructor TtbBoard.Create;
-begin
-  FLanes := TtbLaneList.Create;
-  FLanes.FOwner := Self;
-end;
-
-destructor TtbBoard.Destroy;
-begin
-  FLanes.Free;
-  inherited;
-end;
-
-{ TtbLane }
-
-function TtbLane.AddTaskID(ATaskID: Integer): Integer;
-begin
-  Result := FTaskIDs.Add(ATaskID);
-  GlobalEventBus.Post(GetLaneChangeEvent(Self));
-end;
-
-constructor TtbLane.Create;
-begin
-  FTaskIDs := TList<Integer>.Create;
-end;
-
-destructor TtbLane.Destroy;
-begin
-  FTaskIDs.Free;
-  inherited;
-end;
-
-function TtbLane.GetCount: Integer;
-begin
-  Result := FTaskIDs.Count;
-end;
-
-function TtbLane.GetTaskId(AIndex: Integer): Integer;
-begin
-  Result := FTaskIds[AIndex];
-end;
-
-function TtbLane.GetTaskIdList: String;
-var
-  Enum: Integer;
-begin
-  Result := '';
-  for Enum in FTaskIds do
-    Result := Result + Enum.ToString + ',';
-  Result := Copy(Result, 1, Length(Result) - 1);
-end;
-
-procedure TtbLane.OnTaskChange(AEvent: ITaskChangeEvent);
-begin
-  if FTaskIDs.IndexOf(AEvent.TaskID) then
-    RemoveTaskID(AEvent.TaskID);
-end;
-
-procedure TtbLane.RemoveTaskID(ATaskID: Integer);
-begin
-  FTaskIDs.Remove(ATaskID);
-end;
-
-procedure TtbLane.SetTaskIdList(const Value: String);
-var
-  I: Integer;
-begin
-  var IDs := Value.Split([',']);
-  for I := 0 to Length(IDs) - 1 do
-    FTaskIDs.Add(StrToIntDef(IDs[I], 0));
-end;
-
 { TtbTaskDict }
 
 function TtbTaskDict.FindById(AId: Integer; out ATask: TtbTask): Boolean;
 begin
-  Result := ContainsKey(AId);
-  if Result then
-    ATask := Self[AID];
-end;
-
-{ TtbLaneList }
-
-procedure TtbLaneList.Notify(const Value: TtbLane; Action: TCollectionNotification);
-const
-  done = [TCollectionNotification.cnAdded, TCollectionNotification.cnExtracted,
-    TCollectionNotification.cnRemoved];
-begin
-  inherited;
-  if Action in done then
-    SetModified(True);
-end;
-
-procedure TtbLaneList.SetModified(const Value: Boolean);
-begin
-  if FModified <> Value then
-  begin
-    FModified := Value;
-    FOwner.ChildChanged(Self);
-  end;
+  Result := TryGetValue(AID, ATask);
 end;
 
 { TtbTaskList }
@@ -347,26 +228,51 @@ begin
   FUpdateCount := FUpdateCount + 1;
 end;
 
-procedure TtbTaskList.DeleteByID(AID: Integer);
+constructor TtbTaskList.Create;
+const
+  ownsNothing = [];
 begin
-  for var Enum in Self do
-    if Enum.ID = AID then
-    begin
-      Remove(Enum);
-      Break;
-    end;
+  inherited Create;{Owns=True}
+  FDictionary := TObjectDictionary<Integer, TtbTask>.Create(ownsNothing);
+end;
+
+procedure TtbTaskList.DeleteByID(AID: Integer);
+var
+  Task: TtbTask;
+begin
+  if FDictionary.TryGetValue(AID, Task) then
+    Remove(Task);
+end;
+
+destructor TtbTaskList.Destroy;
+begin
+  FDictionary.Free;
+  inherited Destroy;
 end;
 
 procedure TtbTaskList.EndUpdate;
 begin
   FUpdateCount := FUpdateCount + 1;
+  RebuildDictionary;
 end;
 
 procedure TtbTaskList.Notify(const Value: TtbTask; Action: TCollectionNotification);
 begin
   inherited;
   if Action = TCollectionNotification.cnRemoved then
-    GlobalEventBus.Post(GetTaskChangeEvent(Value.ID, TTaskChangeKind.Deleted)
+    GlobalEventBus.Post(GetTaskChangeEvent(Value.ID, TTaskChangeKind.Deleted));
+end;
+
+procedure TtbTaskList.RebuildDictionary;
+begin
+  FDictionary.Clear;
+  for var Enum in Self do
+    FDictionary.Add(Enum.ID, Enum);
+end;
+
+function TtbTaskList.TryGetByID(AID: Integer; out ATask: TtbTask): Boolean;
+begin
+  Result := FDictionary.TryGetValue(AID, ATask);
 end;
 
 end.
