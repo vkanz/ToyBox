@@ -43,7 +43,7 @@ object FrameLane: TFrameLane
       Left = 3
       Top = 3
       Width = 290
-      Height = 18
+      Height = 21
       Align = alClient
       Alignment = taCenter
       Caption = '?'
@@ -82,6 +82,8 @@ object FrameLane: TFrameLane
     ItemMargins.Bottom = 0
     ParentColor = False
     TabOrder = 1
+    OnAfterDrawItem = ControlListAfterDrawItem
+    OnBeforeDrawItems = ControlListBeforeDrawItems
     OnDragDrop = ControlListDragDrop
     OnDragOver = ControlListDragOver
     OnShowControl = ControlListShowControl

@@ -18,7 +18,8 @@ type
     destructor Destroy; override;
     function GetCount: Integer;
     function GetTaskId(AIndex: Integer): Integer;
-    function AddTaskID(ATaskID: Integer): Integer;
+    function AddTaskID(ATaskID: Integer; AIndex: Integer = -1): Integer;
+    procedure Exchange(AIndex1, AIndex2: Integer);
     procedure RemoveTaskID(ATaskID: Integer);
     property Title: String read FTitle write FTitle;
     property TaskIdList: String read GetTaskIdList write SetTaskIdList;
@@ -41,8 +42,8 @@ type
   TtbBoard = class
   private
     FLanes: TtbLaneList;
-    FModified: boolean;
   protected
+    FModified: boolean;
     procedure ChildChanged(ASender: TObject);
   public
     constructor Create;
@@ -68,9 +69,15 @@ uses Vcl.Graphics, System.UITypes, SysUtils,
 
 { TtbLane }
 
-function TtbLane.AddTaskID(ATaskID: Integer): Integer;
+function TtbLane.AddTaskID(ATaskID: Integer; AIndex: Integer = -1): Integer;
 begin
-  Result := FTaskIDs.Add(ATaskID);
+  if (AIndex = -1) or (FTaskIDs.Count < AIndex - 1) then
+    Result := FTaskIDs.Add(ATaskID)
+  else
+  begin
+    FTaskIDs.Insert(AIndex, ATaskID);
+    Result :=  AIndex;
+  end;
   GlobalEventBus.Post(GetLaneChangeEvent(Self));
 end;
 
@@ -83,6 +90,12 @@ destructor TtbLane.Destroy;
 begin
   FTaskIDs.Free;
   inherited;
+end;
+
+procedure TtbLane.Exchange(AIndex1, AIndex2: Integer);
+begin
+  FTaskIDs.Exchange(AIndex1, AIndex2);
+  GlobalEventBus.Post(GetLaneChangeEvent(Self));
 end;
 
 function TtbLane.GetCount: Integer;

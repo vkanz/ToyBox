@@ -33,8 +33,6 @@ object FormEditTask: TFormEditTask
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitTop = 337
-    ExplicitWidth = 531
     DesignSize = (
       450
       32)
@@ -47,7 +45,6 @@ object FormEditTask: TFormEditTask
       Anchors = [akTop, akRight]
       Default = True
       TabOrder = 0
-      ExplicitLeft = 367
     end
     object Button_Cancel: TButton
       Left = 367
@@ -58,7 +55,6 @@ object FormEditTask: TFormEditTask
       Anchors = [akTop, akRight]
       Cancel = True
       TabOrder = 1
-      ExplicitLeft = 448
     end
   end
   object ActionList: TActionList

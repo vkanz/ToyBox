@@ -1,13 +1,11 @@
 unit tbLaneFrame;
 
-{$DEFINE DZHTML}
-
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
-  Vcl.Menus, System.Actions, Vcl.ActnList, Vcl.ControlList,
+  Vcl.Menus, System.Actions, Vcl.ActnList, Vcl.ControlList, Generics.Collections,
   EventBus,
 {$IFDEF DZHTML}
   Vcl.DzHTMLText,
@@ -52,7 +50,10 @@ type
     procedure Action_DeleteTaskExecute(Sender: TObject);
     procedure ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
     procedure Action_EditTaskExecute(Sender: TObject);
+    procedure ControlListBeforeDrawItems(ACanvas: TCanvas; ARect: TRect);
+    procedure ControlListAfterDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect; AState: TOwnerDrawState);
   private
+    FVisibleItems: TDictionary<Integer, TRect>;
     FTitle: TLabel;
     FText: TGraphicControl;
     {}
@@ -70,7 +71,8 @@ type
       var Handled: Boolean);
 {$ENDIF}
   public
-    constructor Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor);
+    constructor Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor); reintroduce;
+    destructor Destroy; override;
     [Subscribe] { must be EventBus in uses }
     procedure OnLaneChange(AEvent: ILaneChangeEvent);
     procedure SetHeaderText(AValue: String);
@@ -84,7 +86,10 @@ implementation
 {$R *.dfm}
 
 uses Types, UITypes,
+  ControlListHelper,
   tbStrings;
+
+{ Utils }
 
 procedure SetText(AControl: TGraphicControl; const AText: String);
 begin
@@ -100,56 +105,92 @@ end;
 
 type
   TTaskDragObject = class(TDragObjectEx)
-    LaneControls: TFrameLane;
-    constructor Create(ALaneControls: TFrameLane);
+    LaneFrame: TFrameLane;
+    constructor Create(ALaneFrame: TFrameLane);
   end;
 
-constructor TTaskDragObject.Create(ALaneControls: TFrameLane);
+constructor TTaskDragObject.Create(ALaneFrame: TFrameLane);
 begin
   inherited Create;
-  LaneControls := ALaneControls;
+  LaneFrame := ALaneFrame;
 end;
 
 { TFrameLaneHeader }
 
 procedure TFrameLane.ControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
+var
+  CtrlLst: TControlList;
 begin
   { Manual BeginDrag }
   if (Button = mbLeft) then
     if Sender is TControlList then
-      TControlList(Sender).BeginDrag(False);
+    begin
+      CtrlLst := TControlList(Sender);
+      if CtrlLst.ItemIndex = -1 then
+        CtrlLst.ItemIndex := CtrlLst._ItemAtPos(X, Y, FVisibleItems);
+      if CtrlLst.ItemIndex >= 0 then
+        CtrlLst.BeginDrag(False);
+    end;
 end;
 
 procedure TFrameLane.ControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
+var
+  CtrlLst: TControlList;
 begin
   { Creation of DragObject }
-  if ControlList.ItemIndex >= 0 then
+  if Sender is TControlList then
+  begin
+    CtrlLst := TControlList(Sender);
     DragObject := TTaskDragObject.Create(Self);
+  end;
 end;
 
 procedure TFrameLane.ControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
   var Accept: Boolean);
 begin
   { Accepting Drag Object }
-  Accept := IsDragObject(Source) and (Source is TTaskDragObject)
-    and (Self <> TTaskDragObject(Source).LaneControls); //TODO Moving within one Lane
+  Accept := IsDragObject(Source) and (Source is TTaskDragObject);
 end;
 
 procedure TFrameLane.ControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
 var
   SourceFrame: TFrameLane;
   TaskID: Integer;
+  SourceIndex,
+  TargetIndex: Integer;
 begin
   { Dropping }
   if IsDragObject(Source) and (Source is TTaskDragObject) then
   begin
-    SourceFrame := TTaskDragObject(Source).LaneControls;
-    TaskID := SourceFrame.GetCurrentTaskID;
+    TargetIndex := ControlList._ItemAtPos(X, Y, FVisibleItems);
 
-    SourceFrame.Lane.RemoveTaskID(TaskID);
-    Lane.AddTaskID(TaskID);
+    if TTaskDragObject(Source).LaneFrame <> Self then
+    begin
+      SourceFrame := TTaskDragObject(Source).LaneFrame;
+      TaskID := SourceFrame.GetCurrentTaskID;
+      SourceFrame.Lane.RemoveTaskID(TaskID);
+      Lane.AddTaskID(TaskID, TargetIndex);
+    end
+    else
+    begin
+      SourceIndex := ControlList.ItemIndex;
+      Lane.Exchange(SourceIndex, TargetIndex);
+    end;
   end;
+end;
+
+procedure TFrameLane.ControlListBeforeDrawItems(ACanvas: TCanvas; ARect: TRect);
+begin
+  FVisibleItems.Clear;
+end;
+
+procedure TFrameLane.ControlListAfterDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect; AState: TOwnerDrawState);
+var
+  ItemRect: TRect;
+begin
+  ItemRect := ControlList._GetItemRect(AIndex);
+  FVisibleItems.AddOrSetValue(AIndex, ItemRect);
 end;
 
 procedure TFrameLane.ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
@@ -208,10 +249,17 @@ end;
 constructor TFrameLane.Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor);
 begin
   inherited Create(AOwner);
+  FVisibleItems := TDictionary<Integer, TRect>.Create;
   FTaskEditor := ATaskEditor;
   Name := ''; {TODO make unique name?}
   SetupControlList;
   Label_Header.Font.Style := Label_Header.Font.Style + [fsBold];
+end;
+
+destructor TFrameLane.Destroy;
+begin
+  FVisibleItems.Free;
+  inherited;
 end;
 
 procedure TFrameLane.Draw;

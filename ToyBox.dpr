@@ -1,5 +1,7 @@
 program ToyBox;
 
+{.$DEFINE DZHTML}
+
 uses
   Vcl.Forms,
   Vcl.Themes,
@@ -9,10 +11,7 @@ uses
   tbDomain in 'tbDomain.pas',
   tbRepo in 'tbRepo.pas',
   tbFileStorage in 'tbFileStorage.pas',
-  SerializeUtils in 'SerializeUtils.pas' {,
-  tbTest in 'tbTest.pas',
-  tbBoard in 'tbBoard.pas',
-  tbLaneFrame in 'tbLaneFrame.pas' {FrameLane: TFrame},
+  SerializeUtils in 'SerializeUtils.pas',
   tbTest in 'tbTest.pas',
   tbBoard in 'tbBoard.pas',
   tbLaneFrame in 'tbLaneFrame.pas' {FrameLane: TFrame},
@@ -22,8 +21,11 @@ uses
   TitleUtils in 'TitleUtils.pas',
   tbEvents in 'tbEvents.pas',
   tbTaskForm in 'tbTaskForm.pas' {FormEditTask},
-  tbStrings in 'tbStrings.pas',
-  Vcl.DzHTMLText in '..\3d-party\Vcl.DzHTMLText.pas';
+  tbStrings in 'tbStrings.pas'
+{$IFDEF DZHTML}
+  ,Vcl.DzHTMLText in '..\3d-party\Vcl.DzHTMLText.pas'
+{$ENDIF}
+  ;
 
 {$R *.res}
 

@@ -38,6 +38,7 @@ implementation
 {$R *.dfm}
 
 uses
+  UITypes,{Preventing H2443}
   tbStrings;
 
 { TFormEditTask }
@@ -64,6 +65,7 @@ end;
 
 procedure TFormEditTask.FormCreate(Sender: TObject);
 begin
+  ApplyStyle;
   Action_Cancel.Caption := rsButtonCancel;
 end;
 
