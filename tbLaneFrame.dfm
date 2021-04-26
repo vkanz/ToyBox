@@ -89,20 +89,57 @@ object FrameLane: TFrameLane
     OnShowControl = ControlListShowControl
     OnMouseDown = ControlListMouseDown
     OnStartDrag = ControlListStartDrag
-    object Label_Title: TLabel
-      Left = 0
-      Top = 0
-      Width = 316
+    object Shape_ID: TShape
+      Left = 4
+      Top = 1
+      Width = 25
+      Height = 19
+      Brush.Color = clHighlight
+      Pen.Style = psClear
+      Shape = stRoundRect
+    end
+    object Label_ID: TLabel
+      Left = 7
+      Top = 3
+      Width = 18
       Height = 13
-      Align = alTop
+      Alignment = taCenter
+      Anchors = [akLeft, akTop, akRight]
       Caption = '000'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
+      Font.Color = clHighlightText
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitWidth = 18
+    end
+    object Label_Title: TLabel
+      Left = 39
+      Top = 4
+      Width = 266
+      Height = 13
+      Anchors = [akLeft, akTop, akRight]
+      Caption = 'Label_Title'
+    end
+    object Label_Text: TLabel
+      AlignWithMargins = True
+      Left = 39
+      Top = 18
+      Width = 266
+      Height = 41
+      Margins.Left = 10
+      Margins.Top = 2
+      Margins.Right = 2
+      Margins.Bottom = 2
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      AutoSize = False
+      Caption = 
+        'This is example of item with multi-line text. You can put any TG' +
+        'raphicControl on it and adjust properties.'
+      EllipsisPosition = epEndEllipsis
+      ShowAccelChar = False
+      Transparent = True
+      WordWrap = True
     end
   end
   object ActionList: TActionList

@@ -36,7 +36,10 @@ type
     DeleteTask1: TMenuItem;
     Action_EditTask: TAction;
     EditTask1: TMenuItem;
+    Label_ID: TLabel;
+    Shape_ID: TShape;
     Label_Title: TLabel;
+    Label_Text: TLabel;
     procedure SpeedButtonClick(Sender: TObject);
     procedure MenuItem_AddTaskClick(Sender: TObject);
     procedure ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
@@ -54,8 +57,9 @@ type
     procedure ControlListAfterDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect; AState: TOwnerDrawState);
   private
     FVisibleItems: TDictionary<Integer, TRect>;
+    FID: TLabel;
     FTitle: TLabel;
-    FText: TGraphicControl;
+    FText: TLabel;
     {}
     FLane: TtbLane;
     FDomain: TtbDomain;
@@ -121,15 +125,17 @@ procedure TFrameLane.ControlListMouseDown(Sender: TObject; Button: TMouseButton;
   Y: Integer);
 var
   CtrlLst: TControlList;
+  Idx: Integer;
 begin
   { Manual BeginDrag }
   if (Button = mbLeft) then
     if Sender is TControlList then
     begin
       CtrlLst := TControlList(Sender);
-      if CtrlLst.ItemIndex = -1 then
-        CtrlLst.ItemIndex := CtrlLst._ItemAtPos(X, Y, FVisibleItems);
-      if CtrlLst.ItemIndex >= 0 then
+      Idx := CtrlLst._ItemAtPos(X, Y, FVisibleItems);
+      if Idx >= 0 then
+        CtrlLst.ItemIndex := Idx;
+      if (CtrlLst.ItemIndex >= 0) and (CtrlLst.ItemIndex = Idx) then
         CtrlLst.BeginDrag(False);
     end;
 end;
@@ -170,13 +176,14 @@ begin
       SourceFrame := TTaskDragObject(Source).LaneFrame;
       TaskID := SourceFrame.GetCurrentTaskID;
       SourceFrame.Lane.RemoveTaskID(TaskID);
-      Lane.AddTaskID(TaskID, TargetIndex);
+      TargetIndex := Lane.AddTaskID(TaskID, TargetIndex);
     end
     else
     begin
       SourceIndex := ControlList.ItemIndex;
       Lane.Exchange(SourceIndex, TargetIndex);
     end;
+    ControlList.ItemIndex := TargetIndex;
   end;
 end;
 
@@ -235,11 +242,12 @@ begin
     Assert(Assigned(FLane));
     TaskID := FLane.GetTaskId(AIndex);
     if FDomain.Tasks.TryGetByID(TaskID, Task) then
-      if AControl = FTitle then
-        FTitle.Caption := '[' + Task.ID.ToString + ']  ' + Task.Title
+      if AControl = FID then
+        FID.Caption := Task.ID.ToString
+      else if AControl = FTitle then
+        FTitle.Caption := Task.Title
       else if AControl = FText then
-        SetText(FText, Task.Text)
-      else
+        FText.Caption := Task.Text
     else
       if AControl = FTitle then
         FTitle.Caption := '<ID=' + TaskID.ToString + ' ' + rsIsNotFound;
@@ -327,22 +335,9 @@ begin
     ItemSelectionOptions.FocusedColorAlpha := 40;
   end;
 
+  FID := Label_ID;
   FTitle := Label_Title;
-
-{$IFDEF DZHTML}
-    {see https://github.com/digao-dalpiaz/DzHTMLText#component-properties}
-    FText := TDzHTMLText.Create(Self);
-    ControlList.AddControlToItem(FText);
-    TDzHTMLText(FText).OnRetrieveImgRes := HandleRetrieveImgRes;
-    TDzHTMLText(FText).OnLinkClick := HandleLinkClick;
-    TDzHTMLText(FText).ParentColor := True;
-    FText.Align := alClient;
-{$ELSE}
-    FText := TLabel.Create(Self);
-    ControlList.AddControlToItem(FText);
-    FText.Align := alClient;
-    TLabel(FText).WordWrap := True;
-{$ENDIF}
+  FText := Label_Text;
 
   ControlList.ItemHeight := 60;
 end;
