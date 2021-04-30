@@ -61,6 +61,7 @@ type
   public
     constructor CreateParams(AID: Integer; const ATitle, AText, ATags: String; ACreatedBy: Integer);
     function Clone: TtbTask;
+    function IsEqual(ATask: TtbTask): Boolean;
     procedure AssignTo(Dest: TtbTask);
     {}
     property ID: Integer read FID write FID;
@@ -77,6 +78,7 @@ type
   private
     FUpdateCount: Integer;
     FDictionary: TObjectDictionary<Integer, TtbTask>;
+    FDestroying: Boolean;
   protected
     procedure Notify(const Value: TtbTask; Action: TCollectionNotification); override;
     procedure BeginUpdate;
@@ -214,6 +216,18 @@ begin
   FStatus := TtbTaskStatus.Active;
 end;
 
+function TtbTask.IsEqual(ATask: TtbTask): Boolean;
+begin
+  Result :=
+    (FTitle = ATask.FTitle) and
+    (FID = ATask.FID) and
+    (FText = ATask.FText) and
+    (FTags = ATask.FTags) and
+    (FCreatedBy = ATask.FCreatedBy) and
+    (FAssignedTo = ATask.FAssignedTo) and
+    (FStatus = ATask.FStatus);
+end;
+
 { TtbTaskDict }
 
 function TtbTaskDict.FindById(AId: Integer; out ATask: TtbTask): Boolean;
@@ -246,6 +260,7 @@ end;
 
 destructor TtbTaskList.Destroy;
 begin
+  FDestroying := True;
   FDictionary.Free;
   inherited Destroy;
 end;
@@ -259,7 +274,8 @@ end;
 procedure TtbTaskList.Notify(const Value: TtbTask; Action: TCollectionNotification);
 begin
   inherited;
-  if Action = TCollectionNotification.cnRemoved then
+
+  if (not FDestroying) and (Action = TCollectionNotification.cnRemoved) then
     GlobalEventBus.Post(GetTaskChangeEvent(Value.ID, TTaskChangeKind.Deleted));
 end;
 

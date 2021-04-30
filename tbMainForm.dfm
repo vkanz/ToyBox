@@ -1,7 +1,7 @@
 object FormMain: TFormMain
   Left = 0
   Top = 0
-  ActiveControl = DashboardButton
+  ActiveControl = Button_Calendar
   Caption = 'FormMain'
   ClientHeight = 397
   ClientWidth = 618
@@ -818,13 +818,36 @@ object FormMain: TFormMain
             84A887FF0B8B64DC41C79E78CF0000000049454E44AE426082}
           Proportional = True
         end
-        object DashboardButton: TButton
+        object Button_Calendar: TButton
+          Left = 0
+          Top = 38
+          Width = 187
+          Height = 38
+          Hint = 'Calendar'
+          Align = alTop
+          Caption = 'Calendar'
+          DoubleBuffered = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -16
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ImageIndex = 5
+          ImageName = 'baseline_calendar_today_white'
+          Images = VirtualImageList1
+          ParentDoubleBuffered = False
+          ParentFont = False
+          TabOrder = 0
+          OnClick = Button_CalendarClick
+        end
+        object Button_Board: TButton
           Left = 0
           Top = 0
           Width = 187
           Height = 38
           Hint = 'Board'
           Align = alTop
+          Caption = 'Board'
           DoubleBuffered = True
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -836,8 +859,8 @@ object FormMain: TFormMain
           Images = VirtualImageList1
           ParentDoubleBuffered = False
           ParentFont = False
-          TabOrder = 0
-          OnClick = DashboardButtonClick
+          TabOrder = 1
+          OnClick = Button_BoardClick
         end
       end
     end

@@ -7,6 +7,8 @@
 // https://github.com/vkanz/toybox
 //
 // ***************************************************************************
+// Pacers:
+// https://flowlu.ru/uses/project-task/
 unit tbMainForm;
 
 interface
@@ -33,19 +35,21 @@ type
     MenuVirtualImage: TVirtualImage;
     Panel1: TPanel;
     Image1: TImage;
-    DashboardButton: TButton;
+    Button_Calendar: TButton;
     Panel_PageContainer: TPanel;
     TitleBarPanel: TTitleBarPanel;
+    Button_Board: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure MenuVirtualImageClick(Sender: TObject);
     procedure SplitViewClosing(Sender: TObject);
     procedure SplitViewOpening(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure DashboardButtonClick(Sender: TObject);
+    procedure Button_BoardClick(Sender: TObject);
     procedure lblTitleClick(Sender: TObject);
     procedure TitleBarPanelCustomButtons0Click(Sender: TObject);
     procedure TitleBarPanelCustomButtons0Paint(Sender: TObject);
+    procedure Button_CalendarClick(Sender: TObject);
   private
     FDomain: TtbDomain;
     FRepo: TtbRepo;
@@ -73,6 +77,7 @@ uses
   tbUtils,
   tbFileStorage,
   tbBoardFrame,
+  tbCalendarFrame,
   tbTaskForm;
 
 { Utils }
@@ -81,13 +86,22 @@ begin
   ShellExecute(0, 'OPEN', PChar(AUrl), '', '', SW_SHOWNORMAL);
 end;
 
-procedure TFormMain.DashboardButtonClick(Sender: TObject);
+procedure TFormMain.Button_BoardClick(Sender: TObject);
 begin
   if Assigned(FCurrentPage) then
     FCurrentPage.Finalize;
 
   FCurrentPage := TFrameBoard.CreatePage(Panel_PageContainer, FDomain, FRepo,
     TTaskEditor.Create);
+  FCurrentPage.Initialize;
+end;
+
+procedure TFormMain.Button_CalendarClick(Sender: TObject);
+begin
+  if Assigned(FCurrentPage) then
+    FCurrentPage.Finalize;
+
+  FCurrentPage := TFrameCalendar.CreatePage(Panel_PageContainer);
   FCurrentPage.Initialize;
 end;
 
@@ -157,12 +171,14 @@ end;
 
 procedure TFormMain.SplitViewClosing(Sender: TObject);
 begin
-  DashboardButton.Caption := '';
+  Button_Board.Caption := '';
+  Button_Calendar.Caption := '';
 end;
 
 procedure TFormMain.SplitViewOpening(Sender: TObject);
 begin
-  DashboardButton.Caption := '          ' + DashboardButton.Hint;
+  Button_Board.Caption := '          ' + Button_Board.Hint;
+  Button_Calendar.Caption := '      ' + Button_Calendar.Hint;
 end;
 
 procedure TFormMain.TitleBarPanelCustomButtons0Click(Sender: TObject);

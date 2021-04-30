@@ -5,12 +5,14 @@ object FrameLane: TFrameLane
   Height = 240
   TabOrder = 0
   object GridPanel: TGridPanel
-    Left = 0
-    Top = 0
-    Width = 320
+    AlignWithMargins = True
+    Left = 3
+    Top = 3
+    Width = 314
     Height = 24
     Align = alTop
     BevelOuter = bvNone
+    Color = clActiveCaption
     ColumnCollection = <
       item
         Value = 100.000000000000000000
@@ -30,34 +32,37 @@ object FrameLane: TFrameLane
         Control = SpeedButton
         Row = 0
       end>
+    ParentBackground = False
     RowCollection = <
       item
         Value = 100.000000000000000000
       end>
     TabOrder = 0
     DesignSize = (
-      320
+      314
       24)
     object Label_Header: TLabel
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 290
+      Width = 284
       Height = 21
       Align = alClient
       Alignment = taCenter
       Caption = '?'
+      Color = clBtnFace
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
+      ParentColor = False
       ParentFont = False
       ExplicitWidth = 6
       ExplicitHeight = 13
     end
     object SpeedButton: TSpeedButton
-      Left = 296
+      Left = 290
       Top = 1
       Width = 23
       Height = 22
@@ -71,9 +76,9 @@ object FrameLane: TFrameLane
   end
   object ControlList: TControlList
     Left = 0
-    Top = 24
+    Top = 30
     Width = 320
-    Height = 216
+    Height = 210
     Align = alClient
     ItemHeight = 60
     ItemMargins.Left = 0
@@ -82,30 +87,28 @@ object FrameLane: TFrameLane
     ItemMargins.Bottom = 0
     ParentColor = False
     TabOrder = 1
-    OnAfterDrawItem = ControlListAfterDrawItem
-    OnBeforeDrawItems = ControlListBeforeDrawItems
+    OnBeforeDrawItem = ControlListBeforeDrawItem
     OnDragDrop = ControlListDragDrop
     OnDragOver = ControlListDragOver
-    OnShowControl = ControlListShowControl
     OnMouseDown = ControlListMouseDown
     OnStartDrag = ControlListStartDrag
     object Shape_ID: TShape
-      Left = 4
-      Top = 1
-      Width = 25
-      Height = 19
-      Brush.Color = clHighlight
+      Left = 2
+      Top = 2
+      Width = 15
+      Height = 15
+      Brush.Color = clActiveCaption
       Pen.Style = psClear
       Shape = stRoundRect
     end
     object Label_ID: TLabel
-      Left = 7
-      Top = 3
-      Width = 18
+      Left = 6
+      Top = 2
+      Width = 6
       Height = 13
       Alignment = taCenter
       Anchors = [akLeft, akTop, akRight]
-      Caption = '000'
+      Caption = '0'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clHighlightText
       Font.Height = -11
@@ -116,10 +119,12 @@ object FrameLane: TFrameLane
     object Label_Title: TLabel
       Left = 39
       Top = 4
-      Width = 266
+      Width = 51
       Height = 13
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Label_Title'
+      Color = clBlack
+      ParentColor = False
     end
     object Label_Text: TLabel
       AlignWithMargins = True
@@ -135,8 +140,12 @@ object FrameLane: TFrameLane
       AutoSize = False
       Caption = 
         'This is example of item with multi-line text. You can put any TG' +
-        'raphicControl on it and adjust properties.'
+        'raphicControl on it and adjust properties. This is example of it' +
+        'em with multi-line text. You can put any TGraphicControl on it a' +
+        'nd adjust properties.'
+      Color = clWindow
       EllipsisPosition = epEndEllipsis
+      ParentColor = False
       ShowAccelChar = False
       Transparent = True
       WordWrap = True

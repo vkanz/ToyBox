@@ -1,7 +1,5 @@
 program ToyBox;
 
-{.$DEFINE DZHTML}
-
 uses
   Vcl.Forms,
   Vcl.Themes,
@@ -21,11 +19,9 @@ uses
   TitleUtils in 'TitleUtils.pas',
   tbEvents in 'tbEvents.pas',
   tbTaskForm in 'tbTaskForm.pas' {FormEditTask},
-  tbStrings in 'tbStrings.pas'
-{$IFDEF DZHTML}
-  ,Vcl.DzHTMLText in '..\3d-party\Vcl.DzHTMLText.pas'
-{$ENDIF}
-  ;
+  tbStrings in 'tbStrings.pas',
+  tbCalendarFrame in 'tbCalendarFrame.pas' {FrameCalendar: TFrame};
+
 
 {$R *.res}
 
@@ -35,7 +31,7 @@ begin
 {$ENDIF}
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.Title := 'ToyBox';
+  Application.Title := 'ToyBox Personal Task Tracker';
   //TStyleManager.TrySetStyle('Windows10 SlateGray');
   Application.CreateForm(TFormMain, FormMain);
   Application.Run;

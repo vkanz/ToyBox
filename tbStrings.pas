@@ -9,8 +9,11 @@ interface
 resourcestring
   rsNewTask = 'New Task';
   rsTask = 'Task';
+  rsTitle = 'Title';
+  rsText = 'Text';
   rsLaneDone = 'Done';
-  rsIsNotFound = 'is not found';
+  rsTaskNotFound = 'Not found';
+  rsIsNotFound = 'not found';
   rsAboutToyBox = 'About ToyBox';
   rsProgramVersion = 'Program version: ';
   rsFileVersion = 'File version: ';

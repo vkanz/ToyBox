@@ -1,5 +1,10 @@
 unit tbLaneFrame;
 
+{ TControlList:
+https://www.youtube.com/watch?v=T6JW5nodSiI
+https://www.developpez.net/forums/d2104107/environnements-developpement/delphi/composants-vcl/10-4-2-nouveau-tcontrollist/
+}
+
 interface
 
 uses
@@ -7,22 +12,12 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Buttons,
   Vcl.Menus, System.Actions, Vcl.ActnList, Vcl.ControlList, Generics.Collections,
   EventBus,
-{$IFDEF DZHTML}
-  Vcl.DzHTMLText,
-{$ENDIF}
   tbBoardIntf,
   tbDomain,
   tbBoard,
   tbEvents;
 
 type
-  TtbLaneHeaderBuilder = class
-    //class function GetLaneHeader(ALaneControls: TLaneControls): ItbLaneHeader;
-  end;
-
-type
-  TFrameLane = class;
-
   TFrameLane = class(TFrame)
     Label_Header: TLabel;
     GridPanel: TGridPanel;
@@ -53,10 +48,10 @@ type
     procedure Action_DeleteTaskExecute(Sender: TObject);
     procedure ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
     procedure Action_EditTaskExecute(Sender: TObject);
-    procedure ControlListBeforeDrawItems(ACanvas: TCanvas; ARect: TRect);
-    procedure ControlListAfterDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect; AState: TOwnerDrawState);
+    { Draw Item }
+    procedure ControlListBeforeDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect; AState: TOwnerDrawState);
   private
-    FVisibleItems: TDictionary<Integer, TRect>;
+    FShapeID: TShape;
     FID: TLabel;
     FTitle: TLabel;
     FText: TLabel;
@@ -66,6 +61,7 @@ type
     FTaskEditor: ItbTaskEditor;
   protected
     procedure SetupControlList;
+    procedure SetupIDMark;
     procedure Draw;
     function GetCurrentTaskID: Integer;
 {$IFDEF DZHTML}
@@ -74,6 +70,7 @@ type
     procedure HandleLinkClick(Sender: TObject; Link: TDHBaseLink;
       var Handled: Boolean);
 {$ENDIF}
+    procedure SetItemHeight(AValue: Integer);
   public
     constructor Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor); reintroduce;
     destructor Destroy; override;
@@ -121,6 +118,9 @@ end;
 
 { TFrameLaneHeader }
 
+type
+  TControlListAux = class(TControlList);
+
 procedure TFrameLane.ControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 var
@@ -132,7 +132,7 @@ begin
     if Sender is TControlList then
     begin
       CtrlLst := TControlList(Sender);
-      Idx := CtrlLst._ItemAtPos(X, Y, FVisibleItems);
+      Idx := TControlListAux(CtrlLst).FirstDrawItemIndex + Y div CtrlLst.ItemHeight;
       if Idx >= 0 then
         CtrlLst.ItemIndex := Idx;
       if (CtrlLst.ItemIndex >= 0) and (CtrlLst.ItemIndex = Idx) then
@@ -169,10 +169,13 @@ begin
   { Dropping }
   if IsDragObject(Source) and (Source is TTaskDragObject) then
   begin
-    TargetIndex := ControlList._ItemAtPos(X, Y, FVisibleItems);
+    TargetIndex := TControlListAux(ControlList).FirstDrawItemIndex + Y div ControlList.ItemHeight;
 
     if TTaskDragObject(Source).LaneFrame <> Self then
     begin
+      if TargetIndex > ControlList.ItemCount - 1 then
+        TargetIndex := -1;{below the low}
+
       SourceFrame := TTaskDragObject(Source).LaneFrame;
       TaskID := SourceFrame.GetCurrentTaskID;
       SourceFrame.Lane.RemoveTaskID(TaskID);
@@ -180,24 +183,13 @@ begin
     end
     else
     begin
+      if TargetIndex > ControlList.ItemCount - 1 then
+        TargetIndex := ControlList.ItemCount - 1;
       SourceIndex := ControlList.ItemIndex;
       Lane.Exchange(SourceIndex, TargetIndex);
     end;
     ControlList.ItemIndex := TargetIndex;
   end;
-end;
-
-procedure TFrameLane.ControlListBeforeDrawItems(ACanvas: TCanvas; ARect: TRect);
-begin
-  FVisibleItems.Clear;
-end;
-
-procedure TFrameLane.ControlListAfterDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect; AState: TOwnerDrawState);
-var
-  ItemRect: TRect;
-begin
-  ItemRect := ControlList._GetItemRect(AIndex);
-  FVisibleItems.AddOrSetValue(AIndex, ItemRect);
 end;
 
 procedure TFrameLane.ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
@@ -231,6 +223,33 @@ begin
     FTaskEditor.Edit(Task)
 end;
 
+procedure TFrameLane.ControlListBeforeDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect;
+  AState: TOwnerDrawState);
+var
+  TaskID: Integer;
+  Task: TtbTask;
+begin
+  if AIndex < ControlList.ItemCount then {It happens!}
+  begin
+    Assert(FDomain <> nil);
+    Assert(Assigned(FLane));
+    TaskID := FLane.GetTaskId(AIndex);
+    FID.Caption := TaskID.ToString;
+    if FDomain.Tasks.TryGetByID(TaskID, Task) then
+    begin
+      FTitle.Caption := Task.Title;
+      FText.Caption := Task.Text;
+    end
+    else
+    begin
+      FTitle.Caption := '<' + rsTaskNotFound + '>';
+      FText.Caption := '';
+    end;
+    FShapeID.Width := FID.Width + (FID.Left - FShapeID.Left) * 2 + 1;
+    Label_Title.Left := FShapeID.Left + FShapeID.Width + 4;
+  end;
+end;
+
 procedure TFrameLane.ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
 var
   TaskID: Integer;
@@ -243,7 +262,10 @@ begin
     TaskID := FLane.GetTaskId(AIndex);
     if FDomain.Tasks.TryGetByID(TaskID, Task) then
       if AControl = FID then
-        FID.Caption := Task.ID.ToString
+      begin
+        FID.Caption := Task.ID.ToString;
+        FShapeID.Width := FID.Width + (FID.Left - FShapeID.Left) * 2 + 1;
+      end
       else if AControl = FTitle then
         FTitle.Caption := Task.Title
       else if AControl = FText then
@@ -257,7 +279,7 @@ end;
 constructor TFrameLane.Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor);
 begin
   inherited Create(AOwner);
-  FVisibleItems := TDictionary<Integer, TRect>.Create;
+  //FVisibleItems := TDictionary<Integer, TRect>.Create;
   FTaskEditor := ATaskEditor;
   Name := ''; {TODO make unique name?}
   SetupControlList;
@@ -266,7 +288,7 @@ end;
 
 destructor TFrameLane.Destroy;
 begin
-  FVisibleItems.Free;
+  //FVisibleItems.Free;
   inherited;
 end;
 
@@ -304,6 +326,12 @@ begin
   Label_Header.Caption := AValue;
 end;
 
+procedure TFrameLane.SetItemHeight(AValue: Integer);
+begin
+  Label_Text.Height := AValue - Label_Text.Top;
+  ControlList.ItemHeight := AValue;
+end;
+
 procedure TFrameLane.SetLane(AValue: TtbLane);
 begin
   if FLane <> AValue then
@@ -315,9 +343,23 @@ begin
 
     if FLane <> nil then
       GlobalEventBus.RegisterSubscriberForEvents(Self);
-
     Draw;
   end;
+end;
+
+procedure TFrameLane.SetupIDMark;
+begin
+  FShapeID.Top := 2;
+  FShapeID.Left := 2;
+  FShapeID.Height := 15;
+  FShapeID.Width := 15;
+  FID.Top := FShapeID.Top;
+  FID.Left := FShapeID.Left + 5;
+  FID.AutoSize := True;
+
+  Label_Title.Top := FID.Top;
+  Label_Text.Top := FID.Top + 16;
+  Label_Text.Left := FShapeID.Left;
 end;
 
 procedure TFrameLane.SetupControlList;
@@ -334,12 +376,14 @@ begin
     ItemSelectionOptions.SelectedColorAlpha := 30;
     ItemSelectionOptions.FocusedColorAlpha := 40;
   end;
-
+  {}
   FID := Label_ID;
+  FShapeID := Shape_ID;
   FTitle := Label_Title;
   FText := Label_Text;
-
-  ControlList.ItemHeight := 60;
+  {}
+  SetupIDMark;
+  SetItemHeight(60);
 end;
 
 {$IFDEF DZHTML}

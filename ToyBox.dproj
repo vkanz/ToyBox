@@ -134,6 +134,10 @@
             <Form>FormEditTask</Form>
         </DCCReference>
         <DCCReference Include="tbStrings.pas"/>
+        <DCCReference Include="tbCalendarFrame.pas">
+            <Form>FrameCalendar</Form>
+            <DesignClass>T</DesignClass>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
