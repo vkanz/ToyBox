@@ -1,14 +1,14 @@
 object FrameLane: TFrameLane
   Left = 0
   Top = 0
-  Width = 320
+  Width = 312
   Height = 240
   TabOrder = 0
   object GridPanel: TGridPanel
     AlignWithMargins = True
     Left = 3
     Top = 3
-    Width = 314
+    Width = 306
     Height = 24
     Align = alTop
     BevelOuter = bvNone
@@ -38,15 +38,16 @@ object FrameLane: TFrameLane
         Value = 100.000000000000000000
       end>
     TabOrder = 0
+    ExplicitWidth = 314
     DesignSize = (
-      314
+      306
       24)
     object Label_Header: TLabel
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 284
-      Height = 21
+      Width = 276
+      Height = 18
       Align = alClient
       Alignment = taCenter
       Caption = '?'
@@ -62,7 +63,7 @@ object FrameLane: TFrameLane
       ExplicitHeight = 13
     end
     object SpeedButton: TSpeedButton
-      Left = 290
+      Left = 282
       Top = 1
       Width = 23
       Height = 22
@@ -77,7 +78,7 @@ object FrameLane: TFrameLane
   object ControlList: TControlList
     Left = 0
     Top = 30
-    Width = 320
+    Width = 312
     Height = 210
     Align = alClient
     ItemHeight = 60
@@ -88,10 +89,13 @@ object FrameLane: TFrameLane
     ParentColor = False
     TabOrder = 1
     OnBeforeDrawItem = ControlListBeforeDrawItem
+    OnClick = ControlListClick
     OnDragDrop = ControlListDragDrop
     OnDragOver = ControlListDragOver
+    OnKeyUp = ControlListKeyUp
     OnMouseDown = ControlListMouseDown
     OnStartDrag = ControlListStartDrag
+    ExplicitWidth = 320
     object Shape_ID: TShape
       Left = 2
       Top = 2
@@ -150,8 +154,21 @@ object FrameLane: TFrameLane
       Transparent = True
       WordWrap = True
     end
+    object Button_Edit: TControlListButton
+      Left = 112
+      Top = 1
+      Width = 25
+      Height = 25
+      Action = Action_EditTask
+      Images = VirtualImageList1
+      HotImageIndex = 0
+      HotImageName = 'edit'
+      LinkHotColor = clHighlight
+      Style = clbkLink
+    end
   end
   object ActionList: TActionList
+    Images = VirtualImageList1
     OnUpdate = ActionListUpdate
     Left = 112
     Top = 112
@@ -165,20 +182,53 @@ object FrameLane: TFrameLane
     end
     object Action_EditTask: TAction
       Caption = 'Edit Task'
+      ImageIndex = 0
+      ImageName = 'edit'
       OnExecute = Action_EditTaskExecute
     end
   end
   object PopupMenu_Header: TPopupMenu
     Left = 192
     Top = 104
-    object AddTask1: TMenuItem
+    object MenuItem_AddTask: TMenuItem
       Action = Action_AddTask
     end
-    object DeleteTask1: TMenuItem
+    object MenuItem_DeleteTask: TMenuItem
       Action = Action_DeleteTask
     end
-    object EditTask1: TMenuItem
+    object MenuItem_EditTask: TMenuItem
       Action = Action_EditTask
     end
+  end
+  object ImageCollection1: TImageCollection
+    Images = <
+      item
+        Name = 'edit'
+        SourceImages = <
+          item
+            Image.Data = {
+              89504E470D0A1A0A0000000D4948445200000012000000120804000000FCC746
+              DC0000005A4944415428CFCDCAB10D83301000C0EB338459081A86F0380CC030
+              96188441B0C4A74AC9D31089AB8FFF9BAC3E79197561CBDAA0D885B05E95D9A1
+              2A76DD7455BA70AA8A312B211C86BBD2CDEF2FB4FBF24B6961D1B4BC3CE30BB4
+              753CAE4F7FCE540000000049454E44AE426082}
+          end>
+      end>
+    Left = 32
+    Top = 112
+  end
+  object VirtualImageList1: TVirtualImageList
+    DisabledGrayscale = False
+    DisabledSuffix = '_Disabled'
+    Images = <
+      item
+        CollectionIndex = 0
+        CollectionName = 'edit'
+        Disabled = False
+        Name = 'edit'
+      end>
+    ImageCollection = ImageCollection1
+    Left = 40
+    Top = 176
   end
 end

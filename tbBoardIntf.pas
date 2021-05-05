@@ -18,7 +18,7 @@ type
 
 type
   ItbTaskEditor = interface
-    procedure Edit(ATask: TtbTask);
+    function Edit(ATask: TtbTask; ANew: Boolean = False): Boolean;
   end;
 
 implementation

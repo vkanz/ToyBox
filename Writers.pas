@@ -25,7 +25,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    function ToString: string;
+    function ToString: string; reintroduce;
   end;
 
   TJsonStringReader = class(TJsonTextReader)
@@ -47,7 +47,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Rewind; override;
-    function ToString: string;
+    function ToString: string; reintroduce;
     property IndentationBase: Integer read FIndentationBase write FIndentationBase;
     property Indentation: Integer read FIndentation write FIndentation;
     property IndentChar: Char read FIndentChar write FIndentChar;

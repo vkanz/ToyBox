@@ -63,7 +63,7 @@ var
   Frm: TFrameLane;
 begin
   GridPanel.ColumnCollection.Add.SizeStyle := ssPercent;
-  Frm := TFrameLane.Create(Self, FTaskEditor);
+  Frm := TFrameLane.Create(Self, FRepo, FTaskEditor);
   Frm.Parent := GridPanel;
   Frm.Align := alClient;
   Frm.SetLane(ALane);

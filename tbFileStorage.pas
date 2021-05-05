@@ -15,8 +15,10 @@ type
     FLines: TStrings;
     FFolder: String;
     FFileNameFull: String;
+    FDomainLink: TtbDomain;
   protected
     property FileNameFull: String read FFileNameFull;
+    class procedure SaveHistory(const AFileName: String);
   public
     constructor Create;
     destructor Destroy; override;
@@ -25,14 +27,15 @@ type
     procedure PutDomain(ASource: TtbDomain);
     function GetBoard(ATarget: TtbBoard; const ABoardName: String = ''): Boolean;
     procedure PutBoard(ASource: TtbBoard; const ABoardName: String = '');
-    procedure PutTask(ATask: TtbTask);
+    procedure PostTask(ATask: TtbTask);
     {}
     property Folder: String read FFolder;
   end;
 
 implementation
 
-uses SysUtils, IOUtils, SerializeUtils;
+uses SysUtils, IOUtils, Types, DateUtils, Generics.Collections, Generics.Defaults,
+  SerializeUtils;
 
 const
   dirHome = 'ToyBox\';
@@ -108,6 +111,7 @@ begin
   if FLines.Count > 0 then
   begin
     JsonToObject(FLines.Text, ATarget);
+    FDomainLink := ATarget;
     Result := True;
   end;
   FLines.Clear;
@@ -125,12 +129,52 @@ begin
 
   FLines.Clear;
   FLines.Text := ObjectToJson(ASource);
+  SaveHistory(FFileNameFull);
   FLines.SaveToFile(FFileNameFull);
 end;
 
-procedure TtbFileStorage.PutTask(ATask: TtbTask);
+class procedure TtbFileStorage.SaveHistory(const AFileName: String);
+const
+  depth = 9;
+var
+  HistDir: String;
+  ClearFileName,
+  NewFileName: String;
+  FileArr: TStringDynArray;
 begin
+  HistDir := TPath.Combine(TPath.GetDirectoryName(AFileName), '__history');
+  ClearFileName := TPath.GetFileName(AFileName);
+  if not TDirectory.Exists(HistDir) then
+    TDirectory.CreateDirectory(HistDir);
 
+  FileArr := TDirectory.GetFiles(HistDir, ClearFileName + '.~*~', TSearchOption.soTopDirectoryOnly);
+  if Length(FileArr) < depth then
+    NewFileName := ClearFileName + '.~' + (Length(FileArr) + 1).ToString + '~'
+  else
+  begin
+    TArray.Sort<String>(FileArr, TDelegatedComparer<String>.Construct(
+      function(const Left, Right: String): Integer
+      begin
+        Result := CompareDateTime(
+          TFile.GetLastWriteTime(TPath.Combine(HistDir, Left)),
+          TFile.GetLastWriteTime(TPath.Combine(HistDir, Right))
+          );
+      end)
+      );
+    NewFileName := FileArr[0];
+  end;
+  TFile.Copy(AFileName, TPath.Combine(HistDir, NewFileName), True{Owerwrite});
+end;
+
+procedure TtbFileStorage.PostTask(ATask: TtbTask);
+begin
+  Assert(ATask <> nil);
+  if ATask.ID = newTaskId then
+  begin
+    ATask.ID := FDomainLink.GetNextTaskID;
+    FDomainLink.AddTask(ATask);
+  end;
+  PutDomain(FDomainLink); {Save all the domain}
 end;
 
 end.

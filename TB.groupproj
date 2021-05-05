@@ -1,0 +1,84 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{E68329E8-BFAA-465A-A5CE-2D5BC0AC090C}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ToyBox.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\ControlList\CorneliusDavid\ControlListTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\DzHTMLText\Example\ProjectDzHTMLText.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\DzHTMLText\Example\Example.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\_Projects\shturman.4\Utils\JsonViewer\JsonViewer.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ToyBox">
+        <MSBuild Projects="ToyBox.dproj"/>
+    </Target>
+    <Target Name="ToyBox:Clean">
+        <MSBuild Projects="ToyBox.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ToyBox:Make">
+        <MSBuild Projects="ToyBox.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ControlListTest">
+        <MSBuild Projects="..\ControlList\CorneliusDavid\ControlListTest.dproj"/>
+    </Target>
+    <Target Name="ControlListTest:Clean">
+        <MSBuild Projects="..\ControlList\CorneliusDavid\ControlListTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ControlListTest:Make">
+        <MSBuild Projects="..\ControlList\CorneliusDavid\ControlListTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ProjectDzHTMLText">
+        <MSBuild Projects="..\DzHTMLText\Example\ProjectDzHTMLText.dproj"/>
+    </Target>
+    <Target Name="ProjectDzHTMLText:Clean">
+        <MSBuild Projects="..\DzHTMLText\Example\ProjectDzHTMLText.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ProjectDzHTMLText:Make">
+        <MSBuild Projects="..\DzHTMLText\Example\ProjectDzHTMLText.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Example">
+        <MSBuild Projects="..\DzHTMLText\Example\Example.dproj"/>
+    </Target>
+    <Target Name="Example:Clean">
+        <MSBuild Projects="..\DzHTMLText\Example\Example.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Example:Make">
+        <MSBuild Projects="..\DzHTMLText\Example\Example.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="JsonViewer">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Utils\JsonViewer\JsonViewer.dproj"/>
+    </Target>
+    <Target Name="JsonViewer:Clean">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Utils\JsonViewer\JsonViewer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="JsonViewer:Make">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Utils\JsonViewer\JsonViewer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ToyBox;ControlListTest;ProjectDzHTMLText;Example;JsonViewer"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ToyBox:Clean;ControlListTest:Clean;ProjectDzHTMLText:Clean;Example:Clean;JsonViewer:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ToyBox:Make;ControlListTest:Make;ProjectDzHTMLText:Make;Example:Make;JsonViewer:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

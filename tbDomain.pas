@@ -89,6 +89,7 @@ type
     destructor Destroy; override;
     procedure DeleteByID(AID: Integer);
     function TryGetByID(AID: Integer; out ATask: TtbTask): Boolean;
+    function Exists(AID: Integer): Boolean;
   end;
 
 type
@@ -112,10 +113,14 @@ type
     destructor Destroy; override;
     function GetNextTaskID: Integer;
     function FindTaskById(AID: Integer; out ATask: TtbTask): Boolean;
+    function TaskExists(AID: Integer): Boolean;
     function GetAllTasksID: String;
     procedure BeginUpdate;
     procedure EndUpdate;
     {}
+    procedure AddTask(ATask: TtbTask);
+    procedure DeleteTasksById(AID: Integer);
+    { Persistant properties }
     property Tasks: TtbTaskList read FTasks write FTasks;
     property Persons: TtbPersonList read FPersons write FPersons;
   end;
@@ -127,6 +132,12 @@ uses SysUtils, Math,
 
 { TtbDomain }
 
+procedure TtbDomain.AddTask(ATask: TtbTask);
+begin
+  FTasks.Add(ATask);
+  GlobalEventBus.Post(GetEventTaskAdd(ATask));
+end;
+
 procedure TtbDomain.BeginUpdate;
 begin
   FTasks.BeginUpdate;
@@ -136,6 +147,11 @@ constructor TtbDomain.Create;
 begin
   FTasks := TtbTaskList.Create;{AOwnsObjects=True}
   FPersons := TtbPersonList.Create;{AOwnsObjects=True}
+end;
+
+procedure TtbDomain.DeleteTasksById(AID: Integer);
+begin
+  FTasks.DeleteByID(AID);
 end;
 
 destructor TtbDomain.Destroy;
@@ -175,6 +191,11 @@ function TtbDomain.GetNextTaskID: Integer;
 begin
   FLastTaskID := FLastTaskID + 1;
   Result := FLastTaskID;
+end;
+
+function TtbDomain.TaskExists(AID: Integer): Boolean;
+begin
+  Result := FTasks.Exists(AID);
 end;
 
 { TtbPerson }
@@ -267,16 +288,18 @@ end;
 
 procedure TtbTaskList.EndUpdate;
 begin
-  FUpdateCount := FUpdateCount + 1;
-  RebuildDictionary;
+  FUpdateCount := FUpdateCount - 1;
+  if FUpdateCount = 0 then
+    RebuildDictionary;
 end;
 
 procedure TtbTaskList.Notify(const Value: TtbTask; Action: TCollectionNotification);
 begin
   inherited;
-
   if (not FDestroying) and (Action = TCollectionNotification.cnRemoved) then
-    GlobalEventBus.Post(GetTaskChangeEvent(Value.ID, TTaskChangeKind.Deleted));
+    GlobalEventBus.Post(GetEventTaskChange(Value.ID, TTaskChangeKind.Deleted));
+  if FUpdateCount = 0 then
+    RebuildDictionary;
 end;
 
 procedure TtbTaskList.RebuildDictionary;
@@ -289,6 +312,11 @@ end;
 function TtbTaskList.TryGetByID(AID: Integer; out ATask: TtbTask): Boolean;
 begin
   Result := FDictionary.TryGetValue(AID, ATask);
+end;
+
+function TtbTaskList.Exists(AID: Integer): Boolean;
+begin
+  Result := FDictionary.ContainsKey(AID);
 end;
 
 end.

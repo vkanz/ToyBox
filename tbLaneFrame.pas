@@ -14,8 +14,9 @@ uses
   EventBus,
   tbBoardIntf,
   tbDomain,
+  tbRepo,
   tbBoard,
-  tbEvents;
+  tbEvents, System.ImageList, Vcl.ImgList, Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection;
 
 type
   TFrameLane = class(TFrame)
@@ -26,17 +27,19 @@ type
     ActionList: TActionList;
     Action_AddTask: TAction;
     PopupMenu_Header: TPopupMenu;
-    AddTask1: TMenuItem;
+    MenuItem_AddTask: TMenuItem;
     Action_DeleteTask: TAction;
-    DeleteTask1: TMenuItem;
+    MenuItem_DeleteTask: TMenuItem;
     Action_EditTask: TAction;
-    EditTask1: TMenuItem;
+    MenuItem_EditTask: TMenuItem;
     Label_ID: TLabel;
     Shape_ID: TShape;
     Label_Title: TLabel;
     Label_Text: TLabel;
+    Button_Edit: TControlListButton;
+    ImageCollection1: TImageCollection;
+    VirtualImageList1: TVirtualImageList;
     procedure SpeedButtonClick(Sender: TObject);
-    procedure MenuItem_AddTaskClick(Sender: TObject);
     procedure ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
     { Drag-n-drop }
     procedure ControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -50,6 +53,8 @@ type
     procedure Action_EditTaskExecute(Sender: TObject);
     { Draw Item }
     procedure ControlListBeforeDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect; AState: TOwnerDrawState);
+    procedure ControlListClick(Sender: TObject);
+    procedure ControlListKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     FShapeID: TShape;
     FID: TLabel;
@@ -58,6 +63,7 @@ type
     {}
     FLane: TtbLane;
     FDomain: TtbDomain;
+    FRepo: TtbRepo;
     FTaskEditor: ItbTaskEditor;
   protected
     procedure SetupControlList;
@@ -72,7 +78,7 @@ type
 {$ENDIF}
     procedure SetItemHeight(AValue: Integer);
   public
-    constructor Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor); reintroduce;
+    constructor Create(AOwner: TComponent; ARepo: TtbRepo; ATaskEditor: ItbTaskEditor); reintroduce;
     destructor Destroy; override;
     [Subscribe] { must be EventBus in uses }
     procedure OnLaneChange(AEvent: ILaneChangeEvent);
@@ -87,7 +93,6 @@ implementation
 {$R *.dfm}
 
 uses Types, UITypes,
-  ControlListHelper,
   tbStrings;
 
 { Utils }
@@ -119,24 +124,38 @@ end;
 { TFrameLaneHeader }
 
 type
-  TControlListAux = class(TControlList);
+  TControlListAux = class(TControlList)
+    function ItemIndexAtY(Y: Integer): Integer;
+  end;
 
 procedure TFrameLane.ControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 var
-  CtrlLst: TControlList;
+  SenderControlList: TControlList;
   Idx: Integer;
+  Rect: TRect;
 begin
   { Manual BeginDrag }
   if (Button = mbLeft) then
     if Sender is TControlList then
     begin
-      CtrlLst := TControlList(Sender);
-      Idx := TControlListAux(CtrlLst).FirstDrawItemIndex + Y div CtrlLst.ItemHeight;
+      SenderControlList := TControlList(Sender);
+      Idx := TControlListAux(SenderControlList).FirstDrawItemIndex + Y div
+        SenderControlList.ItemHeight;
       if Idx >= 0 then
-        CtrlLst.ItemIndex := Idx;
-      if (CtrlLst.ItemIndex >= 0) and (CtrlLst.ItemIndex = Idx) then
-        CtrlLst.BeginDrag(False);
+        SenderControlList.ItemIndex := Idx;
+
+      Rect := Button_Edit.BoundsRect;
+      Rect.Offset(0, (Y div SenderControlList.ItemHeight) * SenderControlList.ItemHeight);
+      if Rect.Contains(TPoint.Create(X, Y)) then
+      begin
+        Action_EditTask.Execute;
+      end
+      else
+      begin
+        if (SenderControlList.ItemIndex >= 0) and (SenderControlList.ItemIndex = Idx) then
+          SenderControlList.BeginDrag(False);
+      end;
     end;
 end;
 
@@ -157,6 +176,13 @@ procedure TFrameLane.ControlListDragOver(Sender, Source: TObject; X, Y: Integer;
 begin
   { Accepting Drag Object }
   Accept := IsDragObject(Source) and (Source is TTaskDragObject);
+end;
+
+procedure TFrameLane.ControlListKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Key = VK_ESCAPE) and (Shift = []) then
+    if Sender is TControlList then
+      TControlList(Sender).ItemIndex := -1;
 end;
 
 procedure TFrameLane.ControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -203,23 +229,36 @@ end;
 procedure TFrameLane.Action_AddTaskExecute(Sender: TObject);
 var
   Id: Integer;
+  NewTask: TtbTask;
 begin
-  Id := FDomain.GetNextTaskID;
-  FDomain.Tasks.Add(TtbTask.CreateParams(Id, rsTask + Id.ToString, rsNewTask, '', 1));
-  Lane.AddTaskID(Id);
-  ControlList.Repaint;
+  NewTask := TtbTask.CreateParams(0, rsTask + Id.ToString, rsNewTask, '', 1);
+  if not FTaskEditor.Edit(NewTask, True{New}) then
+    NewTask.Free
+  else
+  begin
+    FRepo.PostTask(NewTask); {Obtains ID}
+    if NewTask.ID = newTaskId then
+      raise Exception.Create('Error obtainig ID');
+
+    if not FDomain.TaskExists(NewTask.ID) then
+      FDomain.AddTask(NewTask);
+
+    Lane.AddTaskID(NewTask.Id);
+    ControlList.Repaint; {TODO through event}
+  end;
 end;
 
 procedure TFrameLane.Action_DeleteTaskExecute(Sender: TObject);
 begin
-  FDomain.Tasks.DeleteById(GetCurrentTaskID);
+  FDomain.DeleteTasksById(GetCurrentTaskID);
 end;
 
 procedure TFrameLane.Action_EditTaskExecute(Sender: TObject);
 var
   Task: TtbTask;
 begin
-  if FDomain.Tasks.TryGetByID(GetCurrentTaskID, Task) then
+  //CancelDrag;
+  if FDomain.FindTaskByID(GetCurrentTaskID, Task) then
     FTaskEditor.Edit(Task)
 end;
 
@@ -235,7 +274,14 @@ begin
     Assert(Assigned(FLane));
     TaskID := FLane.GetTaskId(AIndex);
     FID.Caption := TaskID.ToString;
-    if FDomain.Tasks.TryGetByID(TaskID, Task) then
+    FID.Width := FID.Canvas.TextWidth(FID.Caption); { a kind of muddle with Autosize }
+    Button_Edit.Visible := odHotLight in AState;
+    if Button_Edit.Visible then
+    begin
+      Button_Edit.Caption := '';
+      Button_Edit.Left := ControlList.Width - Button_Edit.Width - 8;
+    end;
+    if FDomain.FindTaskByID(TaskID, Task) then
     begin
       FTitle.Caption := Task.Title;
       FText.Caption := Task.Text;
@@ -250,6 +296,26 @@ begin
   end;
 end;
 
+procedure TFrameLane.ControlListClick(Sender: TObject);
+const
+  popupOnClick = False;
+var
+  ScreenPt,
+  ClientPt: TPoint;
+  Idx: Integer;
+  ControlList: TControlListAux;
+begin
+  if not (Sender is TControlList) or not popupOnClick then
+    Exit;
+  ControlList := TControlListAux(Sender);
+  ScreenPt := Mouse.CursorPos;
+  ClientPt := ControlList.ScreenToClient(ScreenPt);
+  Idx := ControlList.ItemIndexAtY(ClientPt.Y);
+  if Idx > ControlList.ItemCount - 1 then
+    ControlList.ItemIndex := -1;
+  PopupMenu_Header.Popup(ScreenPt.X, ScreenPt.Y);
+end;
+
 procedure TFrameLane.ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
 var
   TaskID: Integer;
@@ -260,7 +326,7 @@ begin
     Assert(FDomain <> nil);
     Assert(Assigned(FLane));
     TaskID := FLane.GetTaskId(AIndex);
-    if FDomain.Tasks.TryGetByID(TaskID, Task) then
+    if FDomain.FindTaskByID(TaskID, Task) then
       if AControl = FID then
       begin
         FID.Caption := Task.ID.ToString;
@@ -276,10 +342,11 @@ begin
   end;
 end;
 
-constructor TFrameLane.Create(AOwner: TComponent; ATaskEditor: ItbTaskEditor);
+constructor TFrameLane.Create(AOwner: TComponent; ARepo: TtbRepo; ATaskEditor: ItbTaskEditor);
 begin
   inherited Create(AOwner);
   //FVisibleItems := TDictionary<Integer, TRect>.Create;
+  FRepo := ARepo;
   FTaskEditor := ATaskEditor;
   Name := ''; {TODO make unique name?}
   SetupControlList;
@@ -303,11 +370,6 @@ function TFrameLane.GetCurrentTaskID: Integer;
 begin
   Assert(ControlList.ItemIndex >= 0);
   Result := FLane.GetTaskId(ControlList.ItemIndex);
-end;
-
-procedure TFrameLane.MenuItem_AddTaskClick(Sender: TObject);
-begin
-//
 end;
 
 procedure TFrameLane.OnLaneChange(AEvent: ILaneChangeEvent);
@@ -381,6 +443,7 @@ begin
   FShapeID := Shape_ID;
   FTitle := Label_Title;
   FText := Label_Text;
+  //Button_Edit.Left := ControlList.Width - Button_Edit.Width - 8;
   {}
   SetupIDMark;
   SetItemHeight(60);
@@ -415,6 +478,13 @@ begin
     Pnt := Btn.Parent.ClientToScreen(Pnt);
     PopupMenu_Header.Popup(Pnt.X, Pnt.Y)
   end;
+end;
+
+{ TControlListAux }
+
+function TControlListAux.ItemIndexAtY(Y: Integer): Integer;
+begin
+  Result := FirstDrawItemIndex + Y div ItemHeight;
 end;
 
 end.

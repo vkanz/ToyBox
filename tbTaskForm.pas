@@ -10,7 +10,7 @@ uses
 
 type
   TTaskEditor = class(TInterfacedObject, ItbTaskEditor)
-    procedure Edit(ATask: TtbTask);
+    function Edit(ATask: TtbTask; ANew: Boolean = False): Boolean;
   end;
 
 type
@@ -37,7 +37,7 @@ type
     procedure FormToObject;
     procedure ApplyStyle;
   public
-    class function EditTask(ATask: TtbTask): Boolean;
+    class function EditTask(ATask: TtbTask; ANew: Boolean = False): Boolean;
   end;
 
 implementation
@@ -65,7 +65,7 @@ begin
   //Label_ID.Font.Style := Label_ID.Font.Style + [fsBold];
 end;
 
-class function TFormEditTask.EditTask(ATask: TtbTask): Boolean;
+class function TFormEditTask.EditTask(ATask: TtbTask; ANew: Boolean = False): Boolean;
 var
   Fm: TFormEditTask;
 begin
@@ -77,7 +77,7 @@ begin
     if Result then
     begin
       Fm.FormToObject;
-      Result := not Fm.FOriginal.IsEqual(Fm.FTask);
+      Result := ANew or not Fm.FOriginal.IsEqual(Fm.FTask);
     end;
     if Result then
       Fm.FTask.AssignTo(ATask);
@@ -122,9 +122,9 @@ end;
 
 { TTaskEditor }
 
-procedure TTaskEditor.Edit(ATask: TtbTask);
+function TTaskEditor.Edit(ATask: TtbTask; ANew: Boolean = False): Boolean;
 begin
-  TFormEditTask.EditTask(ATask);
+  Result := TFormEditTask.EditTask(ATask, ANew);
 end;
 
 end.

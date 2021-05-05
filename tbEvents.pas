@@ -18,8 +18,15 @@ type
     function GetChangeKind: TTaskChangeKind;
   end;
 
-function GetLaneChangeEvent(ALane: TObject{TtbLane}): ILaneChangeEvent;
-function GetTaskChangeEvent(ATaskID: Integer; AChangeKind: TTaskChangeKind): ITaskChangeEvent;
+type
+  ITaskAddEvent = interface
+  ['{DECB4233-F949-40EB-B181-98B4374A0764}']
+    function GetTask: TObject;
+  end;
+
+function GetEventLaneChange(ALane: TObject{TtbLane}): ILaneChangeEvent;
+function GetEventTaskChange(ATaskID: Integer; AChangeKind: TTaskChangeKind): ITaskChangeEvent;
+function GetEventTaskAdd(ATask: TObject): ITaskAddEvent;
 
 implementation
 
@@ -41,7 +48,17 @@ type
     function GetChangeKind: TTaskChangeKind;
   end;
 
-function GetLaneChangeEvent(ALane: TObject{TtbLane}): ILaneChangeEvent;
+type
+  TTaskAddEvent = class(TInterfacedObject, ITaskAddEvent)
+  private
+    FTask: TObject; //TtbTask;
+  public
+    function GetTask: TObject;//TtbTask;
+  end;
+
+{}
+
+function GetEventLaneChange(ALane: TObject{TtbLane}): ILaneChangeEvent;
 var
   Obj: TLaneChangeEvent;
 begin
@@ -50,13 +67,22 @@ begin
   Result := Obj;
 end;
 
-function GetTaskChangeEvent(ATaskID: Integer; AChangeKind: TTaskChangeKind): ITaskChangeEvent;
+function GetEventTaskChange(ATaskID: Integer; AChangeKind: TTaskChangeKind): ITaskChangeEvent;
 var
   Obj: TTaskChangeEvent;
 begin
   Obj := TTaskChangeEvent.Create;
   Obj.FTaskID := ATaskID;
   Obj.FChangeKind := AChangeKind;
+  Result := Obj;
+end;
+
+function GetEventTaskAdd(ATask: TObject): ITaskAddEvent;
+var
+  Obj: TTaskAddEvent;
+begin
+  Obj := TTaskAddEvent.Create;
+  Obj.FTask := ATask;
   Result := Obj;
 end;
 
@@ -77,6 +103,13 @@ end;
 function TTaskChangeEvent.GetTaskID: Integer;
 begin
   Result := FTaskID;
+end;
+
+{ TTaskAddEvent }
+
+function TTaskAddEvent.GetTask: TObject;
+begin
+  Result := FTask;
 end;
 
 end.

@@ -78,7 +78,7 @@ begin
     FTaskIDs.Insert(AIndex, ATaskID);
     Result :=  AIndex;
   end;
-  GlobalEventBus.Post(GetLaneChangeEvent(Self));
+  GlobalEventBus.Post(GetEventLaneChange(Self));
 end;
 
 constructor TtbLane.Create;
@@ -95,7 +95,7 @@ end;
 procedure TtbLane.Exchange(AIndex1, AIndex2: Integer);
 begin
   FTaskIDs.Exchange(AIndex1, AIndex2);
-  GlobalEventBus.Post(GetLaneChangeEvent(Self));
+  GlobalEventBus.Post(GetEventLaneChange(Self));
 end;
 
 function TtbLane.GetCount: Integer;
@@ -124,7 +124,7 @@ end;
 procedure TtbLane.RemoveTaskID(ATaskID: Integer);
 begin
   FTaskIDs.Remove(ATaskID);
-  GlobalEventBus.Post(GetLaneChangeEvent(Self));
+  GlobalEventBus.Post(GetEventLaneChange(Self));
 end;
 
 procedure TtbLane.SetTaskIdList(const Value: String);
