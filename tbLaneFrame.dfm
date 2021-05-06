@@ -38,7 +38,6 @@ object FrameLane: TFrameLane
         Value = 100.000000000000000000
       end>
     TabOrder = 0
-    ExplicitWidth = 314
     DesignSize = (
       306
       24)
@@ -59,6 +58,10 @@ object FrameLane: TFrameLane
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
+      OnDragDrop = Label_HeaderDragDrop
+      OnDragOver = Label_HeaderDragOver
+      OnMouseDown = Label_HeaderMouseDown
+      OnStartDrag = Label_HeaderStartDrag
       ExplicitWidth = 6
       ExplicitHeight = 13
     end
@@ -95,7 +98,6 @@ object FrameLane: TFrameLane
     OnKeyUp = ControlListKeyUp
     OnMouseDown = ControlListMouseDown
     OnStartDrag = ControlListStartDrag
-    ExplicitWidth = 320
     object Shape_ID: TShape
       Left = 2
       Top = 2
@@ -161,7 +163,9 @@ object FrameLane: TFrameLane
       Height = 25
       Action = Action_EditTask
       Images = VirtualImageList1
-      HotImageIndex = 0
+      ImageIndex = 0
+      ImageName = 'edit2'
+      HotImageIndex = 1
       HotImageName = 'edit'
       LinkHotColor = clHighlight
       Style = clbkLink
@@ -182,9 +186,17 @@ object FrameLane: TFrameLane
     end
     object Action_EditTask: TAction
       Caption = 'Edit Task'
-      ImageIndex = 0
+      ImageIndex = 1
       ImageName = 'edit'
       OnExecute = Action_EditTaskExecute
+    end
+    object Action_AddLane: TAction
+      Caption = 'Add Lane'
+      OnExecute = Action_AddLaneExecute
+    end
+    object Action_DeleteLane: TAction
+      Caption = 'Delete Lane'
+      OnExecute = Action_DeleteLaneExecute
     end
   end
   object PopupMenu_Header: TPopupMenu
@@ -198,6 +210,15 @@ object FrameLane: TFrameLane
     end
     object MenuItem_EditTask: TMenuItem
       Action = Action_EditTask
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object ActionAddLane1: TMenuItem
+      Action = Action_AddLane
+    end
+    object DeleteLane1: TMenuItem
+      Action = Action_DeleteLane
     end
   end
   object ImageCollection1: TImageCollection
@@ -213,6 +234,21 @@ object FrameLane: TFrameLane
               2A76DD7455BA70AA8A312B211C86BBD2CDEF2FB4FBF24B6961D1B4BC3CE30BB4
               753CAE4F7FCE540000000049454E44AE426082}
           end>
+      end
+      item
+        Name = 'edit2'
+        SourceImages = <
+          item
+            Image.Data = {
+              89504E470D0A1A0A0000000D494844520000001200000012080600000056CE8E
+              57000000BC4944415438CBCDD22D4E03411806E0870D07A942720392D615B118
+              0C3D0209A2664F31A68243608AC12037E1024D25A6249C01C52645B09B6C9794
+              CC4CCDBE6A323F4FBE6F66185BCE924F4CAB1B9458AAC3571E34AD4A3CE31C6F
+              B8EEB0220199608BCF76E60AAB6EB988446EF18E3966D8A1C14B7C6BBFC853DB
+              CE1EF778C5A53A44428748976F5CA8C3477F6B918834580C91E3151D47EED461
+              1DF78F3290BF502672089D800C2FFB2117F9EFD59210830A36BDF1630A32CEFC
+              00CF6A3FFFD4E2CDC00000000049454E44AE426082}
+          end>
       end>
     Left = 32
     Top = 112
@@ -221,6 +257,12 @@ object FrameLane: TFrameLane
     DisabledGrayscale = False
     DisabledSuffix = '_Disabled'
     Images = <
+      item
+        CollectionIndex = 1
+        CollectionName = 'edit2'
+        Disabled = False
+        Name = 'edit2'
+      end
       item
         CollectionIndex = 0
         CollectionName = 'edit'

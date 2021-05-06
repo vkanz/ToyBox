@@ -12,15 +12,7 @@ object FrameBoard: TFrameBoard
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    object Button2: TButton
-      Left = 384
-      Top = 10
-      Width = 75
-      Height = 25
-      Caption = 'Button2'
-      TabOrder = 0
-      OnClick = Button2Click
-    end
+    Visible = False
   end
   object GridPanel: TGridPanel
     Left = 0
@@ -51,44 +43,9 @@ object FrameBoard: TFrameBoard
   object PopupMenu_Task: TPopupMenu
     Left = 384
     Top = 112
-    object ActionLaneAddTask1: TMenuItem
-      Action = Action_LaneAddTask
-    end
-    object Action11: TMenuItem
-      Caption = 'Action1'
-    end
   end
   object ActionList: TActionList
     Left = 400
     Top = 200
-    object Action_TaskEdit: TAction
-      Category = 'task'
-      Caption = 'Action_TaskEdit'
-    end
-    object Action_TaskDelete: TAction
-      Category = 'task'
-      Caption = 'Action_TaskDelete'
-    end
-    object Action_LaneAddTask: TAction
-      Category = 'lane'
-      Caption = 'Action_LaneAddTask'
-      OnExecute = Action_LaneAddTaskExecute
-    end
-    object Action_LaneSortByName: TAction
-      Category = 'lane'
-      Caption = 'Action_LaneSortByName'
-    end
-    object Action_LaneSortByCreated: TAction
-      Category = 'lane'
-      Caption = 'Action_LaneSortByCreated'
-    end
-    object Action_LaneSortAsc: TAction
-      Category = 'lane'
-      Caption = 'Action_LaneSortAsc'
-    end
-    object Action_LaneSortDesc: TAction
-      Category = 'lane'
-      Caption = 'Action_LaneSortDesc'
-    end
   end
 end

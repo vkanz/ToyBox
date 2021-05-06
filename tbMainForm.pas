@@ -55,6 +55,8 @@ type
     FRepo: TtbRepo;
     FCurrentPage: ItbPage;
   protected
+    procedure SaveState;
+    procedure RestoreState;
     procedure HandleHyperlinkClicked(ASender: TObject);
   public
     procedure SaveDomainAndBoard;
@@ -121,10 +123,12 @@ begin
   FRepo := TtbRepo.Create(TtbFileStorage.Create);
 
   FRepo.GetDomain(FDomain);
+  RestoreState;
 end;
 
 procedure TFormMain.FormDestroy(Sender: TObject);
 begin
+  SaveState;
   FRepo.Free;
   FDomain.Free;
 end;
@@ -162,11 +166,22 @@ begin
   SplitView.Opened := not SplitView.Opened;
 end;
 
+procedure TFormMain.RestoreState;
+begin
+  Button_BoardClick(nil);
+  Button_Board.SetFocus;
+end;
+
 procedure TFormMain.SaveDomainAndBoard;
 begin
   FRepo.PutDomain(FDomain);
   if Assigned(FCurrentPage) then
     FCurrentPage.Finalize;
+end;
+
+procedure TFormMain.SaveState;
+begin
+
 end;
 
 procedure TFormMain.SplitViewClosing(Sender: TObject);

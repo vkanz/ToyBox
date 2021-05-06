@@ -39,13 +39,23 @@ type
     Button_Edit: TControlListButton;
     ImageCollection1: TImageCollection;
     VirtualImageList1: TVirtualImageList;
+    Action_AddLane: TAction;
+    ActionAddLane1: TMenuItem;
+    N1: TMenuItem;
+    Action_DeleteLane: TAction;
+    DeleteLane1: TMenuItem;
     procedure SpeedButtonClick(Sender: TObject);
     procedure ControlListShowControl(const AIndex: Integer; AControl: TControl; var AVisible: Boolean);
-    { Drag-n-drop }
+    { Drag-n-drop Task}
     procedure ControlListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure ControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
     procedure ControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ControlListDragDrop(Sender, Source: TObject; X, Y: Integer);
+    { Drag-n-drop Lane}
+    procedure Label_HeaderMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Label_HeaderStartDrag(Sender: TObject; var DragObject: TDragObject);
+    procedure Label_HeaderDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure Label_HeaderDragDrop(Sender, Source: TObject; X, Y: Integer);
     {}
     procedure Action_AddTaskExecute(Sender: TObject);
     procedure Action_DeleteTaskExecute(Sender: TObject);
@@ -55,6 +65,8 @@ type
     procedure ControlListBeforeDrawItem(AIndex: Integer; ACanvas: TCanvas; ARect: TRect; AState: TOwnerDrawState);
     procedure ControlListClick(Sender: TObject);
     procedure ControlListKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure Action_AddLaneExecute(Sender: TObject);
+    procedure Action_DeleteLaneExecute(Sender: TObject);
   private
     FShapeID: TShape;
     FID: TLabel;
@@ -65,9 +77,13 @@ type
     FDomain: TtbDomain;
     FRepo: TtbRepo;
     FTaskEditor: ItbTaskEditor;
+    FBoardEditor: ItbBoardEditor;
+    procedure SetLane(AValue: TtbLane);
+    procedure SetDomain(AValue: TtbDomain);
   protected
     procedure SetupControlList;
     procedure SetupIDMark;
+    procedure SetupActions;
     procedure Draw;
     function GetCurrentTaskID: Integer;
 {$IFDEF DZHTML}
@@ -78,14 +94,12 @@ type
 {$ENDIF}
     procedure SetItemHeight(AValue: Integer);
   public
-    constructor Create(AOwner: TComponent; ARepo: TtbRepo; ATaskEditor: ItbTaskEditor); reintroduce;
+    constructor Create(AOwner: TComponent; ADomain: TtbDomain;
+      ARepo: TtbRepo; ATaskEditor: ItbTaskEditor; ABoardEditor: ItbBoardEditor); reintroduce;
     destructor Destroy; override;
     [Subscribe] { must be EventBus in uses }
     procedure OnLaneChange(AEvent: ILaneChangeEvent);
-    procedure SetHeaderText(AValue: String);
-    procedure SetLane(AValue: TtbLane);
-    procedure SetDomain(AValue: TtbDomain);
-    property Lane: TtbLane read FLane;
+    property Lane: TtbLane read FLane write SetLane;
   end;
 
 implementation
@@ -110,15 +124,20 @@ end;
 { TTaskDragObject }
 
 type
+  TObjectKind = (Task, Lane);
+
+type
   TTaskDragObject = class(TDragObjectEx)
     LaneFrame: TFrameLane;
-    constructor Create(ALaneFrame: TFrameLane);
+    ObjectKind: TObjectKind;
+    constructor Create(ALaneFrame: TFrameLane; AObjectKind: TObjectKind);
   end;
 
-constructor TTaskDragObject.Create(ALaneFrame: TFrameLane);
+constructor TTaskDragObject.Create(ALaneFrame: TFrameLane; AObjectKind: TObjectKind);
 begin
   inherited Create;
   LaneFrame := ALaneFrame;
+  ObjectKind := AObjectKind;
 end;
 
 { TFrameLaneHeader }
@@ -135,7 +154,7 @@ var
   Idx: Integer;
   Rect: TRect;
 begin
-  { Manual BeginDrag }
+  { Manual BeginDrag Task}
   if (Button = mbLeft) then
     if Sender is TControlList then
     begin
@@ -160,22 +179,18 @@ begin
 end;
 
 procedure TFrameLane.ControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
-var
-  CtrlLst: TControlList;
 begin
   { Creation of DragObject }
   if Sender is TControlList then
-  begin
-    CtrlLst := TControlList(Sender);
-    DragObject := TTaskDragObject.Create(Self);
-  end;
+    DragObject := TTaskDragObject.Create(Self, TObjectKind.Task);
 end;
 
 procedure TFrameLane.ControlListDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
   var Accept: Boolean);
 begin
   { Accepting Drag Object }
-  Accept := IsDragObject(Source) and (Source is TTaskDragObject);
+  Accept := IsDragObject(Source) and (Source is TTaskDragObject) and
+    (TTaskDragObject(Source).ObjectKind = TObjectKind.Task);
 end;
 
 procedure TFrameLane.ControlListKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -218,12 +233,50 @@ begin
   end;
 end;
 
+procedure TFrameLane.Label_HeaderMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  { Manual BeginDrag Lane }
+  if (Button = mbLeft) then
+    if Sender = Label_Header then
+      Label_Header.BeginDrag(False);
+end;
+
+procedure TFrameLane.Label_HeaderStartDrag(Sender: TObject; var DragObject: TDragObject);
+begin
+  { Creation of DragObject }
+  if Sender = Label_Header then
+    DragObject := TTaskDragObject.Create(Self, TObjectKind.Lane);
+end;
+
+procedure TFrameLane.Label_HeaderDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
+  var Accept: Boolean);
+begin
+  { Accepting Drag Object }
+  Accept := IsDragObject(Source) and (Source is TTaskDragObject) and
+    (TTaskDragObject(Source).ObjectKind = TObjectKind.Lane) and
+    (TTaskDragObject(Source).LaneFrame <> Self);
+end;
+
+procedure TFrameLane.Label_HeaderDragDrop(Sender, Source: TObject; X, Y: Integer);
+begin
+  { Dropping }
+  if IsDragObject(Source) and (Source is TTaskDragObject) and
+    (TTaskDragObject(Source).ObjectKind = TObjectKind.Lane) and
+    (TTaskDragObject(Source).LaneFrame <> Self) then
+    FBoardEditor.MoveLane(TTaskDragObject(Source).LaneFrame.Lane, Self.Lane);
+end;
+
 procedure TFrameLane.ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
 begin
   if (Action = Action_DeleteTask) or (Action = Action_EditTask) then
     TAction(Action).Enabled := ControlList.ItemIndex >= 0
   ;
   Handled := True;
+end;
+
+procedure TFrameLane.Action_AddLaneExecute(Sender: TObject);
+begin
+  FBoardEditor.AddLane(FLane, TtbLanePosition.Right);
 end;
 
 procedure TFrameLane.Action_AddTaskExecute(Sender: TObject);
@@ -251,6 +304,11 @@ end;
 procedure TFrameLane.Action_DeleteTaskExecute(Sender: TObject);
 begin
   FDomain.DeleteTasksById(GetCurrentTaskID);
+end;
+
+procedure TFrameLane.Action_DeleteLaneExecute(Sender: TObject);
+begin
+  FBoardEditor.DeleteLane(FLane);
 end;
 
 procedure TFrameLane.Action_EditTaskExecute(Sender: TObject);
@@ -342,15 +400,18 @@ begin
   end;
 end;
 
-constructor TFrameLane.Create(AOwner: TComponent; ARepo: TtbRepo; ATaskEditor: ItbTaskEditor);
+constructor TFrameLane.Create(AOwner: TComponent; ADomain: TtbDomain;
+  ARepo: TtbRepo; ATaskEditor: ItbTaskEditor; ABoardEditor: ItbBoardEditor);
 begin
   inherited Create(AOwner);
   //FVisibleItems := TDictionary<Integer, TRect>.Create;
   FRepo := ARepo;
   FTaskEditor := ATaskEditor;
+  FBoardEditor := ABoardEditor;
   Name := ''; {TODO make unique name?}
   SetupControlList;
   Label_Header.Font.Style := Label_Header.Font.Style + [fsBold];
+  SetDomain(ADomain);
 end;
 
 destructor TFrameLane.Destroy;
@@ -381,11 +442,6 @@ end;
 procedure TFrameLane.SetDomain(AValue: TtbDomain);
 begin
   FDomain := AValue;
-end;
-
-procedure TFrameLane.SetHeaderText(AValue: String);
-begin
-  Label_Header.Caption := AValue;
 end;
 
 procedure TFrameLane.SetItemHeight(AValue: Integer);
@@ -424,6 +480,15 @@ begin
   Label_Text.Left := FShapeID.Left;
 end;
 
+procedure TFrameLane.SetupActions;
+begin
+  Action_AddTask.Caption := rsActionCaptionAddTask;
+  Action_DeleteTask.Caption := rsActionCaptionDeleteTask;
+  Action_EditTask.Caption := rsActionCaptionEditTask;
+  Action_AddLane.Caption := rsActionCaptionAddLane;
+  Action_DeleteLane.Caption := rsActionCaptionDelLane;
+end;
+
 procedure TFrameLane.SetupControlList;
 begin
   with ControlList do
@@ -443,7 +508,6 @@ begin
   FShapeID := Shape_ID;
   FTitle := Label_Title;
   FText := Label_Text;
-  //Button_Edit.Left := ControlList.Width - Button_Edit.Width - 8;
   {}
   SetupIDMark;
   SetItemHeight(60);

@@ -55,6 +55,7 @@ type
     procedure BeforeLoad;
     procedure AfterLoad;
     { }
+    function IndexOfTitle(const ALaneTitle: String): Integer;
     property Lanes: TtbLaneList read FLanes;
   end;
 
@@ -168,6 +169,19 @@ destructor TtbBoard.Destroy;
 begin
   FLanes.Free;
   inherited;
+end;
+
+function TtbBoard.IndexOfTitle(const ALaneTitle: String): Integer;
+var
+  I: Integer;
+begin
+  Result := -1;
+  for I := 0 to FLanes.Count - 1 do
+    if FLanes[I].Title = ALaneTitle then
+    begin
+      Result := I;
+      Break;
+    end;
 end;
 
 procedure TtbBoard.OnTaskChange(AEvent: ITaskChangeEvent);
