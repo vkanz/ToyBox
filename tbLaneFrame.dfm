@@ -192,10 +192,14 @@ object FrameLane: TFrameLane
     end
     object Action_AddLane: TAction
       Caption = 'Add Lane'
+      ImageIndex = 2
+      ImageName = 'add-column'
       OnExecute = Action_AddLaneExecute
     end
     object Action_DeleteLane: TAction
       Caption = 'Delete Lane'
+      ImageIndex = 3
+      ImageName = 'delete-column'
       OnExecute = Action_DeleteLaneExecute
     end
   end
@@ -249,6 +253,41 @@ object FrameLane: TFrameLane
               1DF78F3290BF502672089D800C2FFB2117F9EFD59210830A36BDF1630A32CEFC
               00CF6A3FFFD4E2CDC00000000049454E44AE426082}
           end>
+      end
+      item
+        Name = 'add-column'
+        SourceImages = <
+          item
+            Image.Data = {
+              89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+              61000000097048597300000EC400000EC401952B0E1B000000F949444154388D
+              8DD1AF4B044118C6F10F2272980D878AC96410B92072C97F45B0190583822058
+              0FA35D83C928FE072A2818B4891ABD6612F1D79D6166616ED9D9BD078699E179
+              F7BBF3BE0F41AFF8AC59FB329A8CFB3CB6F118EF83A4660F734D00B8C35545CD
+              06FA3940A11F7433DE74FCD122DA6573A2898C4DBCE129EEB7582D17FD655EB0
+              8B615C67B88FE70F2C37016684040AC01A8E92FB05A3432CAB8B164E708D179C
+              C756B6B0CE7833F8C5B7106D7A1E51AE85AF9A162E9B0070907C702A24301466
+              D31907003B784F400F55B5758016A6B08485B2599742A1633CE3B0CA4C012B42
+              2AE984079815265FA902D047AFE6153739E31FB1BC4AF4BB5C2A200000000049
+              454E44AE426082}
+          end>
+      end
+      item
+        Name = 'delete-column'
+        SourceImages = <
+          item
+            Image.Data = {
+              89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+              61000000097048597300000EC400000EC401952B0E1B000000EA49444154388D
+              8DD13F4A03411CC5F10F2212AC45028A959585A44895C2BB08DE20A914041B1B
+              C9013C408EE01524A08D602316A98276A942FC831B8BDD0D9B6166370F8661F7
+              BDF9EE6FDE926B8245CDBA96D076B11FA28FD7E239AB64AE70D00480673C4632
+              E798A600A57ED14B78BBC5878ED10ECDAD26322EF081F7627F42370CFD2526B8
+              C432B2E6386D02ECC9FF400CB0C403EB2586EAA1252F76147877386B0294CAF0
+              1379BFD65FEC0AFBF84E8CBFBA421D006E128717E86C0280016695C32FB16C1D
+              A0851D9CE028343729F11E6FB88D99554047DE6C1664DAF84AD14BC027863553
+              8C53C63F35B0473BABCE48D50000000049454E44AE426082}
+          end>
       end>
     Left = 32
     Top = 112
@@ -268,6 +307,18 @@ object FrameLane: TFrameLane
         CollectionName = 'edit'
         Disabled = False
         Name = 'edit'
+      end
+      item
+        CollectionIndex = 2
+        CollectionName = 'add-column'
+        Disabled = False
+        Name = 'add-column'
+      end
+      item
+        CollectionIndex = 3
+        CollectionName = 'delete-column'
+        Disabled = False
+        Name = 'delete-column'
       end>
     ImageCollection = ImageCollection1
     Left = 40

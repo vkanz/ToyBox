@@ -91,7 +91,10 @@ end;
 procedure TFormMain.Button_BoardClick(Sender: TObject);
 begin
   if Assigned(FCurrentPage) then
-    FCurrentPage.Finalize;
+    if FCurrentPage.GetPageKind = TtbPageKind.Board then
+      Exit
+    else
+      FCurrentPage.Finalize;
 
   FCurrentPage := TFrameBoard.CreatePage(Panel_PageContainer, FDomain, FRepo,
     TTaskEditor.Create);
@@ -101,7 +104,10 @@ end;
 procedure TFormMain.Button_CalendarClick(Sender: TObject);
 begin
   if Assigned(FCurrentPage) then
-    FCurrentPage.Finalize;
+    if FCurrentPage.GetPageKind = TtbPageKind.Calendar then
+      Exit
+    else
+      FCurrentPage.Finalize;
 
   FCurrentPage := TFrameCalendar.CreatePage(Panel_PageContainer);
   FCurrentPage.Initialize;

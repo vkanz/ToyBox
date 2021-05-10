@@ -21,7 +21,6 @@ object FrameBoard: TFrameBoard
     Height = 356
     Align = alClient
     BevelOuter = bvNone
-    Caption = 'GridPanel'
     ColumnCollection = <
       item
         Value = 50.000000000000000000

@@ -1,0 +1,13 @@
+create database toyboxdb
+    with 
+    owner = postgres
+    encoding = 'utf8'
+    connection limit = -1;
+
+comment on database toyboxdb
+    is 'toybox task tracking';
+
+-- drop schema toybox;
+   
+create schema toybox
+    authorization postgres;

@@ -21,7 +21,7 @@ type
   ItbBoardEditor = interface
     procedure AddLane(ANextTo: TtbLane; APosition: TtbLanePosition);
     function DeleteLane(ALane: TtbLane): Boolean;
-    procedure MoveLane(ALane, AAfterLane: TtbLane);
+    procedure MoveLane(ALane, ANextTo: TtbLane; APosition: TtbLanePosition);
   end;
 
 type

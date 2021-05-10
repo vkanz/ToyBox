@@ -5,16 +5,19 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  tbBoardIntf, Vcl.WinXCalendars, Vcl.ComCtrls, Vcl.ExtCtrls;
+  tbBoardIntf, Vcl.WinXCalendars, Vcl.ComCtrls, Vcl.ExtCtrls, Vcl.Buttons;
 
 type
   TFrameCalendar = class(TFrame, ItbPage)
     CalendarView: TCalendarView;
     Panel_Toolbar: TPanel;
-    TrackBar_Weeks: TTrackBar;
+    GridPanel_Zoom: TGridPanel;
+    Button_Less: TSpeedButton;
+    Button_More: TSpeedButton;
     procedure CalendarViewDrawDayItem(Sender: TObject; DrawParams: TDrawViewInfoParams;
       CalendarViewViewInfo: TCellItemViewInfo);
-    procedure TrackBar_WeeksChange(Sender: TObject);
+    procedure Button_LessClick(Sender: TObject);
+    procedure Button_MoreClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -32,6 +35,18 @@ implementation
 uses DateUtils;
 
 { TFrameCalendar }
+
+procedure TFrameCalendar.Button_LessClick(Sender: TObject);
+begin
+  if CalendarView.NumberOfWeeksInView < 8 then
+    CalendarView.NumberOfWeeksInView := CalendarView.NumberOfWeeksInView + 1;
+end;
+
+procedure TFrameCalendar.Button_MoreClick(Sender: TObject);
+begin
+  if CalendarView.NumberOfWeeksInView > 2 then
+    CalendarView.NumberOfWeeksInView := CalendarView.NumberOfWeeksInView - 1;
+end;
 
 procedure TFrameCalendar.CalendarViewDrawDayItem(Sender: TObject; DrawParams: TDrawViewInfoParams;
   CalendarViewViewInfo: TCellItemViewInfo);
@@ -67,12 +82,7 @@ end;
 
 procedure TFrameCalendar.Initialize;
 begin
-  TrackBar_Weeks.Position := CalendarView.NumberOfWeeksInView;
-end;
 
-procedure TFrameCalendar.TrackBar_WeeksChange(Sender: TObject);
-begin
-  CalendarView.NumberOfWeeksInView := TrackBar_Weeks.Position;
 end;
 
 end.

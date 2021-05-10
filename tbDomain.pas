@@ -62,6 +62,7 @@ type
     constructor CreateParams(AID: Integer; const ATitle, AText, ATags: String; ACreatedBy: Integer);
     function Clone: TtbTask;
     function IsEqual(ATask: TtbTask): Boolean;
+    function IsNew: Boolean;
     procedure AssignTo(Dest: TtbTask);
     {}
     property ID: Integer read FID write FID;
@@ -247,6 +248,11 @@ begin
     (FCreatedBy = ATask.FCreatedBy) and
     (FAssignedTo = ATask.FAssignedTo) and
     (FStatus = ATask.FStatus);
+end;
+
+function TtbTask.IsNew: Boolean;
+begin
+  Result := FID = 0;
 end;
 
 { TtbTaskDict }

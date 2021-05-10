@@ -263,7 +263,7 @@ begin
   if IsDragObject(Source) and (Source is TTaskDragObject) and
     (TTaskDragObject(Source).ObjectKind = TObjectKind.Lane) and
     (TTaskDragObject(Source).LaneFrame <> Self) then
-    FBoardEditor.MoveLane(TTaskDragObject(Source).LaneFrame.Lane, Self.Lane);
+    FBoardEditor.MoveLane(TTaskDragObject(Source).LaneFrame.Lane, Self.Lane, TtbLanePosition.Left);
 end;
 
 procedure TFrameLane.ActionListUpdate(Action: TBasicAction; var Handled: Boolean);

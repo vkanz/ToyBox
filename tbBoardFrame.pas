@@ -42,7 +42,7 @@ type
     { ItbBoardEditor }
     procedure AddLane(AExisted: TtbLane; APosition: TtbLanePosition);
     function DeleteLane(ALane: TtbLane): Boolean;
-    procedure MoveLane(ALane, AAfterLane: TtbLane);    
+    procedure MoveLane(ALane, ANextTo: TtbLane; APosition: TtbLanePosition);
     {}
     procedure HandleInputQueryNewLane(Sender: TObject; const Values: array of string; var CanClose: Boolean);
     {}
@@ -179,18 +179,28 @@ begin
   end;
 end;
 
-procedure TFrameBoard.MoveLane(ALane, AAfterLane: TtbLane);
+procedure TFrameBoard.MoveLane(ALane, ANextTo: TtbLane; APosition: TtbLanePosition);
 var
   CurrentIndex,
   NewIndex: Integer;
 begin
   CurrentIndex := FBoard.Lanes.IndexOf(ALane);
   Assert(CurrentIndex >= 0);  
-  NewIndex := FBoard.Lanes.IndexOf(AAfterLane) + 1;
-  Assert(NewIndex > 0);
-  FBoard.Lanes.Move(CurrentIndex, NewIndex);
+  NewIndex := FBoard.Lanes.IndexOf(ANextTo);
+  Assert(NewIndex >= 0);  
+    
+  case APosition of 
+    TtbLanePosition.Left: ; //NewIndex := NewIndex - 1;
+    TtbLanePosition.Right: NewIndex := NewIndex + 1;
+    TtbLanePosition.First: NewIndex := 0;
+    TtbLanePosition.Last: NewIndex := FBoard.Lanes.Count - 1;    
+  end;
   
-  ShowLaneFrames;{Full repaint}      
+  if (0 <= NewIndex) and (NewIndex < FBoard.Lanes.Count) and (CurrentIndex <> NewIndex)  then
+  begin
+    FBoard.Lanes.Move(CurrentIndex, NewIndex); 
+    ShowLaneFrames;{Full repaint}      
+  end;
 end;
 
 procedure TFrameBoard.BeginUpdate;

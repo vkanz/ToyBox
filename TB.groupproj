@@ -18,6 +18,12 @@
         <Projects Include="..\..\_Projects\shturman.4\Utils\JsonViewer\JsonViewer.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\..\_Projects\shturman.4\Clinic\ClinicServer\ClinicServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\DMVC\321Samples\activerecord_showcase\activerecord_showcase.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -71,14 +77,32 @@
     <Target Name="JsonViewer:Make">
         <MSBuild Projects="..\..\_Projects\shturman.4\Utils\JsonViewer\JsonViewer.dproj" Targets="Make"/>
     </Target>
+    <Target Name="ClinicServer">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Clinic\ClinicServer\ClinicServer.dproj"/>
+    </Target>
+    <Target Name="ClinicServer:Clean">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Clinic\ClinicServer\ClinicServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ClinicServer:Make">
+        <MSBuild Projects="..\..\_Projects\shturman.4\Clinic\ClinicServer\ClinicServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="activerecord_showcase">
+        <MSBuild Projects="..\..\DMVC\321Samples\activerecord_showcase\activerecord_showcase.dproj"/>
+    </Target>
+    <Target Name="activerecord_showcase:Clean">
+        <MSBuild Projects="..\..\DMVC\321Samples\activerecord_showcase\activerecord_showcase.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="activerecord_showcase:Make">
+        <MSBuild Projects="..\..\DMVC\321Samples\activerecord_showcase\activerecord_showcase.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="ToyBox;ControlListTest;ProjectDzHTMLText;Example;JsonViewer"/>
+        <CallTarget Targets="ToyBox;ControlListTest;ProjectDzHTMLText;Example;JsonViewer;ClinicServer;activerecord_showcase"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ToyBox:Clean;ControlListTest:Clean;ProjectDzHTMLText:Clean;Example:Clean;JsonViewer:Clean"/>
+        <CallTarget Targets="ToyBox:Clean;ControlListTest:Clean;ProjectDzHTMLText:Clean;Example:Clean;JsonViewer:Clean;ClinicServer:Clean;activerecord_showcase:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ToyBox:Make;ControlListTest:Make;ProjectDzHTMLText:Make;Example:Make;JsonViewer:Make"/>
+        <CallTarget Targets="ToyBox:Make;ControlListTest:Make;ProjectDzHTMLText:Make;Example:Make;JsonViewer:Make;ClinicServer:Make;activerecord_showcase:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
