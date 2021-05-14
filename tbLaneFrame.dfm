@@ -3,6 +3,8 @@ object FrameLane: TFrameLane
   Top = 0
   Width = 312
   Height = 240
+  ParentShowHint = False
+  ShowHint = True
   TabOrder = 0
   object GridPanel: TGridPanel
     AlignWithMargins = True
@@ -46,7 +48,7 @@ object FrameLane: TFrameLane
       Left = 3
       Top = 3
       Width = 276
-      Height = 18
+      Height = 21
       Align = alClient
       Alignment = taCenter
       Caption = '?'
@@ -90,6 +92,8 @@ object FrameLane: TFrameLane
     ItemMargins.Right = 0
     ItemMargins.Bottom = 0
     ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 1
     OnBeforeDrawItem = ControlListBeforeDrawItem
     OnClick = ControlListClick
@@ -97,6 +101,7 @@ object FrameLane: TFrameLane
     OnDragOver = ControlListDragOver
     OnKeyUp = ControlListKeyUp
     OnMouseDown = ControlListMouseDown
+    OnMouseMove = ControlListMouseMove
     OnStartDrag = ControlListStartDrag
     object Shape_ID: TShape
       Left = 2
@@ -131,6 +136,8 @@ object FrameLane: TFrameLane
       Caption = 'Label_Title'
       Color = clBlack
       ParentColor = False
+      ParentShowHint = False
+      ShowHint = True
     end
     object Label_Text: TLabel
       AlignWithMargins = True

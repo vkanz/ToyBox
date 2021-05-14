@@ -67,7 +67,9 @@ type
     procedure ControlListKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Action_AddLaneExecute(Sender: TObject);
     procedure Action_DeleteLaneExecute(Sender: TObject);
+    procedure ControlListMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
   private
+    FHintWindow: THintWindow;
     FShapeID: TShape;
     FID: TLabel;
     FTitle: TLabel;
@@ -86,6 +88,7 @@ type
     procedure SetupActions;
     procedure Draw;
     function GetCurrentTaskID: Integer;
+    procedure ShowHint(const AText: String; X, Y: Integer);
 {$IFDEF DZHTML}
     procedure HandleRetrieveImgRes(Sender: TObject; const ResourceName: string;
       Picture: TPicture; var Handled: Boolean);
@@ -176,6 +179,14 @@ begin
           SenderControlList.BeginDrag(False);
       end;
     end;
+end;
+
+procedure TFrameLane.ControlListMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+//var
+//  P: TPoint;
+begin
+//  P := ClientToScreen(TPoint.Create(X, Y));
+//  ShowHint('qqqqqq', P.X, P.Y);
 end;
 
 procedure TFrameLane.ControlListStartDrag(Sender: TObject; var DragObject: TDragObject);
@@ -342,6 +353,7 @@ begin
     if FDomain.FindTaskByID(TaskID, Task) then
     begin
       FTitle.Caption := Task.Title;
+      FTitle.Hint :=  Task.Title;
       FText.Caption := Task.Text;
     end
     else
@@ -478,6 +490,20 @@ begin
   Label_Title.Top := FID.Top;
   Label_Text.Top := FID.Top + 16;
   Label_Text.Left := FShapeID.Left;
+end;
+
+procedure TFrameLane.ShowHint(const AText: String; X, Y: Integer);
+var
+  Rect: TRect;
+begin
+  if AText <> '' then
+  begin
+    if FHintWindow = nil then
+      FHintWindow := THintWindow.Create(Self);
+    Rect := FHintWindow.CalcHintRect(Screen.Width, AText, nil);
+    Rect.Offset(X, Y);
+    FHintWindow.ActivateHint(Rect, AText);
+  end;
 end;
 
 procedure TFrameLane.SetupActions;

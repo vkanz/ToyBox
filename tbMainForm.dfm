@@ -3,8 +3,8 @@ object FormMain: TFormMain
   Top = 0
   ActiveControl = Button_Calendar
   Caption = 'FormMain'
-  ClientHeight = 397
-  ClientWidth = 618
+  ClientHeight = 446
+  ClientWidth = 608
   Color = clBtnFace
   CustomTitleBar.Control = TitleBarPanel
   CustomTitleBar.Enabled = True
@@ -40,7 +40,7 @@ object FormMain: TFormMain
     Left = 0
     Top = 30
     Width = 200
-    Height = 367
+    Height = 416
     AnimationStep = 40
     CloseStyle = svcCompact
     FullRepaint = False
@@ -50,18 +50,20 @@ object FormMain: TFormMain
     StyleName = 'Windows10 SlateGray'
     OnClosing = SplitViewClosing
     OnOpening = SplitViewOpening
+    ExplicitHeight = 367
     object NavPanel: TPanel
       AlignWithMargins = True
       Left = 5
       Top = 3
       Width = 192
-      Height = 361
+      Height = 410
       Margins.Left = 5
       Align = alClient
       BevelOuter = bvNone
       FullRepaint = False
       ParentBackground = False
       TabOrder = 0
+      ExplicitHeight = 361
       object pnlToolbar: TPanel
         Left = 0
         Top = 0
@@ -105,13 +107,14 @@ object FormMain: TFormMain
         Left = 2
         Top = 53
         Width = 187
-        Height = 305
+        Height = 354
         Margins.Left = 2
         Align = alClient
         BevelOuter = bvNone
         FullRepaint = False
         ParentBackground = False
         TabOrder = 1
+        ExplicitHeight = 305
         object Image1: TImage
           Left = -48
           Top = 115
@@ -876,7 +879,7 @@ object FormMain: TFormMain
   object TitleBarPanel: TTitleBarPanel
     Left = 0
     Top = 0
-    Width = 618
+    Width = 608
     Height = 30
     CustomButtons = <
       item
@@ -888,8 +891,9 @@ object FormMain: TFormMain
         OnPaint = TitleBarPanelCustomButtons0Paint
         OnClick = TitleBarPanelCustomButtons0Click
       end>
+    ExplicitWidth = 618
     DesignSize = (
-      618
+      608
       30)
   end
   object ImageCollection1: TImageCollection

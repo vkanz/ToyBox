@@ -1,5 +1,11 @@
 unit tbTaskForm;
 
+{
+  TODO:
+  Task type: error, defect, feature, patch
+  Redmine issue types: Bug, Feature, Support
+}
+
 interface
 
 uses

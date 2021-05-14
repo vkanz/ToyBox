@@ -174,6 +174,8 @@ end;
 
 procedure TFormMain.RestoreState;
 begin
+  Width := 1280;
+  Height := 600;
   Button_BoardClick(nil);
   Button_Board.SetFocus;
 end;

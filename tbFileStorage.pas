@@ -22,12 +22,13 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure SaveTask(ATask: TtbTask);
     { ItbStorage }
     function GetDomain(ATarget: TtbDomain): Boolean;
     procedure PutDomain(ASource: TtbDomain);
     function GetBoard(ATarget: TtbBoard; const ABoardName: String = ''): Boolean;
     procedure PutBoard(ASource: TtbBoard; const ABoardName: String = '');
-    procedure PostTask(ATask: TtbTask);
+    procedure ItbStorage.PostTask = SaveTask;
     {}
     property Folder: String read FFolder;
   end;
@@ -166,7 +167,7 @@ begin
   TFile.Copy(AFileName, TPath.Combine(HistDir, NewFileName), True{Owerwrite});
 end;
 
-procedure TtbFileStorage.PostTask(ATask: TtbTask);
+procedure TtbFileStorage.SaveTask(ATask: TtbTask);
 begin
   Assert(ATask <> nil);
   if ATask.ID = newTaskId then

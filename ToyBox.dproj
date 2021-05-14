@@ -87,6 +87,7 @@
         <DCC_UnitSearchPath>$(dmvchome)\lib\dmustache;$(dmvchome)\lib\swagdoc\Source;$(dmvchome)\sources;$(dmvchome)\lib\loggerpro;$(eventbushome)\source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
+        <Icon_MainIcon>ToyBox_Icon.ico</Icon_MainIcon>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -162,6 +163,7 @@
                     <Source Name="MainSource">ToyBox.dpr</Source>
                 </Source>
                 <Excluded_Packages>
+                    <Excluded_Packages Name="C:\Users\v.kanzharadze\Documents\Embarcadero\Studio\21.0\Bin\Win32\Release\GuiComponentsXE10.bpl">File C:\Users\v.kanzharadze\Documents\Embarcadero\Studio\21.0\Bin\Win32\Release\GuiComponentsXE10.bpl not found</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k270.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp270.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
