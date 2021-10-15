@@ -28,7 +28,6 @@ object FormMain: TFormMain
   Font.Style = []
   GlassFrame.Enabled = True
   GlassFrame.Top = 31
-  OldCreateOrder = False
   Position = poScreenCenter
   StyleElements = [seFont, seClient]
   OnCloseQuery = FormCloseQuery
@@ -50,7 +49,6 @@ object FormMain: TFormMain
     StyleName = 'Windows10 SlateGray'
     OnClosing = SplitViewClosing
     OnOpening = SplitViewOpening
-    ExplicitHeight = 367
     object NavPanel: TPanel
       AlignWithMargins = True
       Left = 5
@@ -63,7 +61,6 @@ object FormMain: TFormMain
       FullRepaint = False
       ParentBackground = False
       TabOrder = 0
-      ExplicitHeight = 361
       object pnlToolbar: TPanel
         Left = 0
         Top = 0
@@ -114,7 +111,6 @@ object FormMain: TFormMain
         FullRepaint = False
         ParentBackground = False
         TabOrder = 1
-        ExplicitHeight = 305
         object Image1: TImage
           Left = -48
           Top = 115
@@ -886,12 +882,11 @@ object FormMain: TFormMain
         ButtonType = sbCustom
         Enabled = True
         Hint = 'Options'
-        Width = 32
+        Width = 46
         Visible = True
         OnPaint = TitleBarPanelCustomButtons0Paint
         OnClick = TitleBarPanelCustomButtons0Click
       end>
-    ExplicitWidth = 618
     DesignSize = (
       608
       30)
@@ -2375,109 +2370,90 @@ object FormMain: TFormMain
   end
   object VirtualImageList1: TVirtualImageList
     AutoFill = True
-    DisabledGrayscale = False
-    DisabledSuffix = '_Disabled'
     Images = <
       item
         CollectionIndex = 0
         CollectionName = 'baseline_list_white'
-        Disabled = False
         Name = 'baseline_list_white'
       end
       item
         CollectionIndex = 1
         CollectionName = 'baseline_account_balance_white'
-        Disabled = False
         Name = 'baseline_account_balance_white'
       end
       item
         CollectionIndex = 2
         CollectionName = 'baseline_account_box_white'
-        Disabled = False
         Name = 'baseline_account_box_white'
       end
       item
         CollectionIndex = 3
         CollectionName = 'baseline_add_white'
-        Disabled = False
         Name = 'baseline_add_white'
       end
       item
         CollectionIndex = 4
         CollectionName = 'baseline_attachment_white'
-        Disabled = False
         Name = 'baseline_attachment_white'
       end
       item
         CollectionIndex = 5
         CollectionName = 'baseline_calendar_today_white'
-        Disabled = False
         Name = 'baseline_calendar_today_white'
       end
       item
         CollectionIndex = 6
         CollectionName = 'baseline_cloud_download_white'
-        Disabled = False
         Name = 'baseline_cloud_download_white'
       end
       item
         CollectionIndex = 7
         CollectionName = 'baseline_cloud_upload_white'
-        Disabled = False
         Name = 'baseline_cloud_upload_white'
       end
       item
         CollectionIndex = 8
         CollectionName = 'baseline_contact_mail_white'
-        Disabled = False
         Name = 'baseline_contact_mail_white'
       end
       item
         CollectionIndex = 9
         CollectionName = 'baseline_create_white'
-        Disabled = False
         Name = 'baseline_create_white'
       end
       item
         CollectionIndex = 10
         CollectionName = 'baseline_dashboard_white'
-        Disabled = False
         Name = 'baseline_dashboard_white'
       end
       item
         CollectionIndex = 11
         CollectionName = 'baseline_email_white'
-        Disabled = False
         Name = 'baseline_email_white'
       end
       item
         CollectionIndex = 12
         CollectionName = 'baseline_launch_white'
-        Disabled = False
         Name = 'baseline_launch_white'
       end
       item
         CollectionIndex = 13
         CollectionName = 'baseline_remove_white'
-        Disabled = False
         Name = 'baseline_remove_white'
       end
       item
         CollectionIndex = 14
         CollectionName = 'baseline_clear_white'
-        Disabled = False
         Name = 'baseline_clear_white'
       end
       item
         CollectionIndex = 15
         CollectionName = 'baseline_menu_white'
-        Disabled = False
         Name = 'baseline_menu_white'
       end
       item
         CollectionIndex = 16
         CollectionName = 'baseline_whatshot_white'
-        Disabled = False
         Name = 'baseline_whatshot_white'
       end>
     ImageCollection = ImageCollection1
